@@ -1,0 +1,28 @@
+# Ambiente virtual
+venv/
+env/
+.venv/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.ipynb_checkpoints/
+
+# Dataset
+data/findit2/
+data/authentic/*
+data/tampered/*
+data/pt_test_set/*
+!data/pt_test_set/.gitkeep
+
+# Sistema
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+
+# Variáveis de ambiente
+.env
