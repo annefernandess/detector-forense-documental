@@ -9,7 +9,7 @@ import cv2
 import numpy as np
 from PIL import Image
 
-from dataset_loader import DocumentSample, TamperRegion
+from dataset_loader import DocumentSample, TamperRegion, read_gray_cv2
 
 def wilson_score_interval(p: float, n: int, z: float = 1.96) -> tuple[float, float]:
     if n == 0:
@@ -20,7 +20,7 @@ def wilson_score_interval(p: float, n: int, z: float = 1.96) -> tuple[float, flo
     return center - spread, center + spread
 
 def get_text_mask(image_path: str) -> np.ndarray | None:
-    img = cv2.imread(str(image_path), cv2.IMREAD_GRAYSCALE)
+    img = read_gray_cv2(image_path)
     if img is None:
         return None
     _, text_mask = cv2.threshold(img, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
@@ -28,7 +28,7 @@ def get_text_mask(image_path: str) -> np.ndarray | None:
         text_mask = cv2.bitwise_not(text_mask)
     return text_mask
 
-def _generate_pseudo_region(
+def generate_pseudo_region(
     img_width: int,
     img_height: int,
     ref_w: int,
@@ -120,7 +120,7 @@ def evaluate_region_technique(
         valid_trial_results = []
 
         for _ in range(chance_trials):
-            pseudo = _generate_pseudo_region(
+            pseudo = generate_pseudo_region(
                 img_width, img_height, ref.bbox[2], ref.bbox[3], s.regions, text_mask, rng
             )
             if not pseudo:
@@ -180,6 +180,17 @@ def evaluate_region_technique(
         "real_hits": real_hits_total,
         "exclusions": exclusions
     }
+
+
+def youden_threshold(positives, negatives, candidates) -> tuple[float, float, float]:
+    """
+    Limiar que maximiza o índice de Youden (J = TPR - FPR), decidindo "positivo"
+    quando score >= limiar. Em empate, fica o primeiro candidato da lista.
+    Retorna (limiar, TPR, FPR).
+    """
+    pos, neg = np.asarray(positives), np.asarray(negatives)
+    best = max(candidates, key=lambda t: (pos >= t).mean() - (neg >= t).mean())
+    return float(best), float((pos >= best).mean()), float((neg >= best).mean())
 
 
 def format_results_table(results: dict[str, dict]) -> str:
