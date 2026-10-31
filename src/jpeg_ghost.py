@@ -9,11 +9,15 @@ Referência: Farid, H. "Exposing Digital Forgeries from JPEG Ghosts" (IEEE TIFS,
 
 from __future__ import annotations
 
+import functools
 import io
+import random
 from collections import Counter
 
 import numpy as np
 from PIL import Image
+
+from dataset_loader import TamperRegion
 
 # q=95 fica de fora do padrão: recomprimir quase sem perda dá erro pequeno para
 # QUALQUER histórico, então o 95 "venceria" em quase todo bloco sem dizer nada
@@ -201,3 +205,57 @@ def visualize_jpeg_ghost(
         ax.set_ylim(gray.shape[0], 0)
         ax.axis("off")
     return fig
+
+
+def make_ghost_score_fn(block_size: int = 16):
+    """
+    Cria a `score_fn(image_path, regions)` do JPEG Ghost para `evaluate_region_technique`.
+    O mapa da última imagem fica em cache, porque a avaliação chama a função
+    várias vezes seguidas sobre a mesma imagem.
+    """
+    @functools.lru_cache(maxsize=1)
+    def cached_map(image_path):
+        return compute_jpeg_ghost(image_path, block_size=block_size)
+
+    def score_fn(image_path, regions):
+        return compute_region_ghost_score(cached_map(image_path), regions, block_size)
+
+    return score_fn
+
+
+def _random_region(ghost_map, w, h, rng, block_size=16, max_tries=200):
+    """Sorteia um retângulo w x h com ao menos um bloco válido (com textura). TamperRegion ou None."""
+    H, W = ghost_map.shape[0] * block_size, ghost_map.shape[1] * block_size
+    for _ in range(max_tries):
+        x, y = rng.randint(0, max(0, W - w)), rng.randint(0, max(0, H - h))
+        r = TamperRegion(bbox=(x, y, w, h), modification="CONTROLE", entity_type=None, is_original_area=None)
+        if compute_region_ghost_score(ghost_map, [r], block_size)[0] is not None:
+            return r
+    return None
+
+
+def validate_synthetic(samples, n_images=30, size=(64, 48), quality=60, seed=0):
+    """
+    Validação sintética: em `n_images` imagens sorteadas, troca um retângulo pelo mesmo
+    trecho recomprimido em JPEG (`quality`) e mede se a moda da região difere da do resto
+    (detecção) e se difere também sem a troca (falso positivo).
+    Retorna (detecções, falsos_positivos, n_avaliadas).
+    """
+    rng = random.Random(seed)
+    w, h = size
+    hits = false_pos = n = 0
+    for s in rng.sample(samples, n_images):
+        gray = _load_gray(s.image_path).astype(np.uint8)
+        ghost_clean = compute_jpeg_ghost(Image.fromarray(gray))
+        r = _random_region(ghost_clean, w, h, rng)
+        if r is None:
+            continue
+        x, y, _, _ = r.bbox
+        spliced = gray.copy()
+        spliced[y:y + h, x:x + w] = _jpeg_roundtrip(gray, quality)[y:y + h, x:x + w]
+        ghost_spliced = compute_jpeg_ghost(Image.fromarray(spliced))
+
+        a, b = compute_region_ghost_score(ghost_spliced, [r]); hits += a != b
+        a, b = compute_region_ghost_score(ghost_clean, [r]);   false_pos += a != b
+        n += 1
+    return hits, false_pos, n
