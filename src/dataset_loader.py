@@ -54,7 +54,7 @@ class DocumentSample:
 
 def _parse_modification(raw) -> str | None:
     """'Modified area' normalmente é {'CPI': True}; no val há um caso em que
-    vem como string solta ('CPI') -- usamos a string diretamente."""
+    vem como string solta ('CPI') -- nesse caso a string é usada diretamente."""
     if isinstance(raw, dict):
         keys = [k for k, v in raw.items() if v]
         return "+".join(keys) if keys else None
@@ -137,12 +137,16 @@ def load_dataset(dataset_root: str, split: str, return_diagnostics: bool = False
     samples: list[DocumentSample] = []
     mismatches: list[str] = []
     ambiguous_regions: list[tuple[Path, TamperRegion]] = []
+    missing: list[str] = []
     n_malformed = 0
 
     with open(root / f"{split}.txt", newline="", encoding="utf-8") as f:
         for row in csv.DictReader(f):
             name = row["image"].strip()
             image_path = root / split / name
+            if not image_path.exists():
+                missing.append(name)  # listada no CSV, mas ausente da pasta do split
+                continue
             is_tampered = row["forged"].strip() == "1"
             raw_ann = (row.get("forgery annotations") or "").strip()
             has_ann = raw_ann not in ("", "0")
@@ -171,6 +175,9 @@ def load_dataset(dataset_root: str, split: str, return_diagnostics: bool = False
 
             samples.append(sample)
 
+    if missing:
+        print(f"aviso: {len(missing)} imagens listadas em {split}.txt e ausentes de "
+              f"{split}/ foram ignoradas: {missing}")
     if n_malformed:
         print(f"aviso: {n_malformed} imagens com anotação ausente/malformada "
               f"tratadas como regions=[] ({split})")
