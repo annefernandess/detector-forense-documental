@@ -13,6 +13,10 @@ import io
 import numpy as np
 from PIL import Image, ImageChops
 
+import cv2
+
+from dataset_loader import read_gray_cv2
+
 
 def _load_rgb(image_path) -> Image.Image:
     """Abre a imagem como RGB. Canais alfa (RGBA/LA) são compostos sobre
@@ -136,14 +140,13 @@ def compute_region_score(image_path: str, diff_map: np.ndarray, regions: list) -
     
     Retorna: (média_anotada, média_controle)
     """
-    import cv2
     import random
     
     if not regions:
         return 0.0, 0.0
         
     # Carrega imagem em tons de cinza para Otsu
-    img = cv2.imread(str(image_path), cv2.IMREAD_GRAYSCALE)
+    img = read_gray_cv2(image_path)
     if img is None:
         return 0.0, 0.0
         
