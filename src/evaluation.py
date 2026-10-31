@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import random
 import statistics
+import math
 from dataclasses import replace
 
 import cv2
@@ -9,6 +10,14 @@ import numpy as np
 from PIL import Image
 
 from dataset_loader import DocumentSample, TamperRegion
+
+def wilson_score_interval(p: float, n: int, z: float = 1.96) -> tuple[float, float]:
+    if n == 0:
+        return 0.0, 0.0
+    denom = 1 + z**2 / n
+    center = (p + z**2 / (2 * n)) / denom
+    spread = z * math.sqrt(p * (1 - p) / n + z**2 / (4 * n**2)) / denom
+    return center - spread, center + spread
 
 def get_text_mask(image_path: str) -> np.ndarray | None:
     img = cv2.imread(str(image_path), cv2.IMREAD_GRAYSCALE)
@@ -61,8 +70,8 @@ def evaluate_region_technique(
     seed: int = 42,
 ) -> dict:
     """
-    Generaliza a avaliação de uma técnica de detecção local em imagens adulteradas,
-    comparando os acertos nas regiões reais contra uma linha de base nula (acaso).
+    Generaliza a avaliação de uma técnica de detecção local em imagens adulteradas.
+    A imagem é incluída se a região real for avaliável E pelo menos 10 pseudo-regiões forem válidas.
     """
     rng = random.Random(seed)
     random.seed(seed)
@@ -71,16 +80,30 @@ def evaluate_region_technique(
 
     n_valid = 0
     real_hits_total = 0
-    trial_hits = [0] * chance_trials
+    
+    # Taxa de acaso média de cada imagem, para o cálculo do desvio padrão
+    image_chance_rates = []
+    
+    # Total global, para o intervalo de Wilson
+    total_chance_trials_valid = 0
+    total_chance_hits = 0
+    
+    exclusions = {
+        "text_mask_failed": 0,
+        "real_region_failed": 0,
+        "few_valid_pseudo": 0
+    }
 
     for s in valid_samples:
         text_mask = get_text_mask(s.image_path)
         if text_mask is None:
+            exclusions["text_mask_failed"] += 1
             continue
 
         # 1) Avaliação na região real
         s_in, s_out = score_fn(s.image_path, s.regions)
         if s_in is None or s_out is None:
+            exclusions["real_region_failed"] += 1
             continue
             
         real_hit = hit_fn(s_in, s_out)
@@ -94,54 +117,86 @@ def evaluate_region_technique(
 
         masked_regions = [replace(r, is_original_area=True) for r in s.regions]
 
-        trial_results = []
-        all_trials_successful = True
+        valid_trial_results = []
 
         for _ in range(chance_trials):
             pseudo = _generate_pseudo_region(
                 img_width, img_height, ref.bbox[2], ref.bbox[3], s.regions, text_mask, rng
             )
             if not pseudo:
-                all_trials_successful = False
-                break
+                continue
                 
             ps_in, ps_out = score_fn(s.image_path, [pseudo] + masked_regions)
             if ps_in is None or ps_out is None:
-                all_trials_successful = False
-                break
+                continue
                 
-            trial_results.append(hit_fn(ps_in, ps_out))
+            valid_trial_results.append(hit_fn(ps_in, ps_out))
 
-        if all_trials_successful:
+        if len(valid_trial_results) >= 10:
             n_valid += 1
             if real_hit:
                 real_hits_total += 1
-            for i, hit in enumerate(trial_results):
-                if hit:
-                    trial_hits[i] += 1
+            
+            hits_in_image = sum(valid_trial_results)
+            valid_in_image = len(valid_trial_results)
+            
+            image_chance_rates.append(hits_in_image / valid_in_image)
+            total_chance_hits += hits_in_image
+            total_chance_trials_valid += valid_in_image
+        else:
+            exclusions["few_valid_pseudo"] += 1
 
     if n_valid == 0:
         return {
             "n_samples": 0,
             "real_hit_rate": 0.0,
+            "real_wilson": (0.0, 0.0),
             "chance_hit_rate": 0.0,
             "chance_hit_std": 0.0,
+            "chance_wilson": (0.0, 0.0),
             "real_valid": 0,
             "null_valid": 0,
             "real_hits": 0,
+            "exclusions": exclusions
         }
 
     real_rate = real_hits_total / n_valid
-    trial_rates = [th / n_valid for th in trial_hits]
-    chance_mean = statistics.mean(trial_rates) if chance_trials > 0 else 0.0
-    chance_std = statistics.stdev(trial_rates) if chance_trials > 1 else 0.0
+    real_wilson = wilson_score_interval(real_rate, n_valid)
+    
+    chance_mean = statistics.mean(image_chance_rates)
+    chance_std = statistics.stdev(image_chance_rates) if n_valid > 1 else 0.0
+    chance_global_rate = total_chance_hits / total_chance_trials_valid if total_chance_trials_valid > 0 else 0.0
+    chance_wilson = wilson_score_interval(chance_global_rate, total_chance_trials_valid)
 
     return {
         "n_samples": n_valid,
         "real_hit_rate": real_rate,
+        "real_wilson": real_wilson,
         "chance_hit_rate": chance_mean,
         "chance_hit_std": chance_std,
+        "chance_wilson": chance_wilson,
         "real_valid": n_valid,
-        "null_valid": n_valid * chance_trials,
+        "null_valid": total_chance_trials_valid,
         "real_hits": real_hits_total,
+        "exclusions": exclusions
     }
+
+
+def format_results_table(results: dict[str, dict]) -> str:
+    """
+    Tabela markdown com um resultado de `evaluate_region_technique` por linha:
+    acerto real e acaso (com IC de Wilson 95%), N real, N nulo e exclusões.
+    """
+    lines = ["| técnica/configuração | acerto real (IC 95%) | acaso (média ± desvio) [IC Wilson 95%] | n_real | n_null | exclusões |",
+             "|---|---|---|---|---|---|"]
+    for name, res in results.items():
+        ex = ", ".join(f"{k}={v}" for k, v in res["exclusions"].items())
+        if res["n_samples"] == 0:
+            lines.append(f"| {name} | N/A | N/A | 0 | 0 | {ex} |")
+            continue
+        r0, r1 = res["real_wilson"]
+        c0, c1 = res["chance_wilson"]
+        lines.append(f"| {name} | {res['real_hit_rate']*100:.1f}% [{r0*100:.1f}%, {r1*100:.1f}%] "
+                     f"| {res['chance_hit_rate']*100:.1f}% ± {res['chance_hit_std']*100:.1f}% "
+                     f"[{c0*100:.1f}%, {c1*100:.1f}%] | {res['n_samples']} | {res['null_valid']} | {ex} |")
+    return "\n".join(lines)
