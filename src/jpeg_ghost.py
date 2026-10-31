@@ -17,23 +17,12 @@ from collections import Counter
 import numpy as np
 from PIL import Image
 
-from dataset_loader import TamperRegion
+from dataset_loader import TamperRegion, load_gray
 
 # q=95 fica de fora do padrão: recomprimir quase sem perda dá erro pequeno para
 # QUALQUER histórico, então o 95 "venceria" em quase todo bloco sem dizer nada
 # sobre a compressão original (ver seção de limitações no .md).
 DEFAULT_QUALITIES = tuple(range(50, 95, 5))  # 50, 55, ..., 90
-
-
-def _load_gray(image) -> np.ndarray:
-    """Abre (caminho ou PIL.Image) em tons de cinza float32. Canais alfa são
-    compostos sobre fundo branco, como em ela.py."""
-    img = image if isinstance(image, Image.Image) else Image.open(image)
-    if img.mode in ("RGBA", "LA") or (img.mode == "P" and "transparency" in img.info):
-        img = img.convert("RGBA")
-        background = Image.new("RGBA", img.size, (255, 255, 255, 255))
-        img = Image.alpha_composite(background, img)
-    return np.asarray(img.convert("L"), dtype=np.float32)
 
 
 def _jpeg_roundtrip(gray: np.ndarray, quality: int) -> np.ndarray:
@@ -51,7 +40,7 @@ def ghost_curves(image, qualities=DEFAULT_QUALITIES, block_size: int = 16):
         block_std: (H_b, W_b) desvio padrão dos pixels de cada bloco (textura)
     Pixels que sobram nas bordas (H, W não múltiplos de block_size) são descartados.
     """
-    gray = _load_gray(image)
+    gray = load_gray(image)
     hb, wb = gray.shape[0] // block_size, gray.shape[1] // block_size
     gray = gray[:hb * block_size, :wb * block_size]
 
@@ -92,7 +81,7 @@ def has_jpeg_history(image_path, qualities=DEFAULT_QUALITIES) -> tuple[bool, int
     aparece um vale (mínimo local interno) perto da qualidade original q0.
     Retorna (tem_vale, qualidade_do_vale_ou_None).
     """
-    gray = _load_gray(image_path)
+    gray = load_gray(image_path)
     err = np.array([((gray - _jpeg_roundtrip(gray, q)) ** 2).mean() for q in qualities])
     valleys = [i for i in range(1, len(err) - 1) if err[i] < err[i - 1] and err[i] < err[i + 1]]
     if not valleys:
@@ -173,7 +162,7 @@ def visualize_jpeg_ghost(
     else:
         fig = axes[0].figure
 
-    gray = _load_gray(image)
+    gray = load_gray(image)
     hb, wb = ghost_map.shape
     extent = (0, wb * block_size, hb * block_size, 0)  # mapa na escala de pixels
 
@@ -245,7 +234,7 @@ def validate_synthetic(samples, n_images=30, size=(64, 48), quality=60, seed=0):
     w, h = size
     hits = false_pos = n = 0
     for s in rng.sample(samples, n_images):
-        gray = _load_gray(s.image_path).astype(np.uint8)
+        gray = load_gray(s.image_path).astype(np.uint8)
         ghost_clean = compute_jpeg_ghost(Image.fromarray(gray))
         r = _random_region(ghost_clean, w, h, rng)
         if r is None:

@@ -26,8 +26,47 @@ from __future__ import annotations
 
 import ast
 import csv
+import os
+from contextlib import contextmanager
 from dataclasses import dataclass, field
 from pathlib import Path
+
+import cv2
+import numpy as np
+from PIL import Image
+
+
+@contextmanager
+def _quiet_c_stderr():
+    """Descarta o stderr do C durante a chamada: o libpng imprime 'bKGD: invalid'
+    direto no descritor 2, e o OpenCV não tem flag para isso."""
+    saved = os.dup(2)
+    devnull = os.open(os.devnull, os.O_WRONLY)
+    os.dup2(devnull, 2)
+    try:
+        yield
+    finally:
+        os.dup2(saved, 2)
+        os.close(saved)
+        os.close(devnull)
+
+
+def read_gray_cv2(path) -> np.ndarray | None:
+    """`cv2.imread` em tons de cinza, sem os avisos do libpng. None se não abrir."""
+    with _quiet_c_stderr():
+        return cv2.imread(str(path), cv2.IMREAD_GRAYSCALE)
+
+
+def load_gray(image) -> np.ndarray:
+    """Abre (caminho ou PIL.Image) em tons de cinza float32. Canais alfa são
+    compostos sobre fundo branco, para que o modo do arquivo (L x RGBA) não
+    vire sinal."""
+    img = image if isinstance(image, Image.Image) else Image.open(image)
+    if img.mode in ("RGBA", "LA") or (img.mode == "P" and "transparency" in img.info):
+        img = img.convert("RGBA")
+        background = Image.new("RGBA", img.size, (255, 255, 255, 255))
+        img = Image.alpha_composite(background, img)
+    return np.asarray(img.convert("L"), dtype=np.float32)
 
 
 @dataclass
