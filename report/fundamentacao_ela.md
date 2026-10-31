@@ -84,7 +84,9 @@ calor. Regiões com erro destoante do entorno são candidatas a edição.
   recompressão aqui é o PRIMEIRO ciclo JPEG que o arquivo PNG sofre. Algum
   sinal só aparece se a imagem de origem já carregava os vestígios de um
   JPEG anterior (por exemplo, na digitalização) e a edição posterior
-  quebrou esses vestígios localmente.
+  quebrou esses vestígios localmente. Segundo Martínez Tornés et al. (2023), as
+  imagens do dataset vêm do SROIE e são JPEG. No test, 188 das 218 imagens
+  (86%) apresentam esse vestígio (notebook `02_jpeg_ghost.ipynb`).
 - Se a qualidade usada na recompressão estiver muito distante da qualidade
   original, até os blocos intactos apresentam erro alto, e o contraste
   entre região editada e não editada diminui. Por isso a qualidade é um
@@ -92,3 +94,18 @@ calor. Regiões com erro destoante do entorno são candidatas a edição.
 - Regiões lisas (fundo branco uniforme) quase não têm erro em nenhum caso,
   então uma edição que só apague conteúdo (pintar de branco) tende a ser
   pouco visível.
+
+### 4. Relação com o material da disciplina
+
+Páginas de `material/PDI2026.2.pdf`, conferidas por busca no texto do PDF:
+
+- **DCT:** definição unidimensional e coeficientes DC e AC (slides 376-379);
+  DCT bidimensional e funções de base 8x8 (slides 432-440).
+- **Quantização:** no curso, aparece como discretização de amplitude com passo
+  q (slides 127 e 133). É a mesma operação que o JPEG aplica a cada
+  coeficiente DCT.
+- **Formatos:** JPEG descrito como formato com perda (slide 157) e PNG como
+  formato sem perda (slide 158).
+- **Fora do material:** as tabelas de quantização do JPEG, o espaço YCbCr com
+  subamostragem de crominância, o percentil e o intervalo de confiança não
+  aparecem nos slides. Esses pontos precisam de outra fonte no relatório.

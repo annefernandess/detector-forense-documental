@@ -33,18 +33,20 @@ comprimida em torno de q = X".
 
 ### 2. Por que o erro tem um mínimo em q0
 
-Considere um coeficiente c1 que já foi quantizado com passo q1 (ou seja,
-c1 = k · q1 para algum inteiro k). Recomprimimos com passo q2 e medimos a
+Considera-se um coeficiente c1 que já foi quantizado com passo Δ1 (ou seja,
+c1 = k · Δ1 para algum inteiro k). Recomprime-se com passo Δ2 e mede-se a
 diferença ao quadrado. Farid mostra que esse erro:
 
-- é **zero** quando q2 = q1: c1 já é múltiplo de q1, então re-quantizar com o
+- é **zero** quando Δ2 = Δ1: c1 já é múltiplo de Δ1, então re-quantizar com o
   mesmo passo não muda nada (a imagem "convergiu" para aquela grade);
-- **cresce** de forma geral conforme q2 aumenta (passos maiores, ou seja,
-  qualidades menores, descartam mais informação);
-- mas tem **mínimos locais** em q2 = q1 e nos divisores de q1, mesmo quando o
+- **cresce** de forma geral conforme Δ2 aumenta (passos maiores descartam
+  mais informação);
+- mas tem **mínimos locais** em Δ2 = Δ1 e nos divisores de Δ1, mesmo quando o
   erro "de fundo" é maior.
 
-Em termos de fator de qualidade: recomprimir com q = q0 dá um erro muito
+O passo Δ não é o fator de qualidade q: no JPEG, q (1 a 100) escala a tabela
+inteira, e qualidade menor significa passos maiores. Em termos de fator de
+qualidade, recomprimir com q = q0 dá um erro muito
 menor que com as qualidades vizinhas (q0 - 5 ou q0 + 5). A curva
 
 ```
@@ -57,7 +59,7 @@ e a imagem pode ter sofrido outras operações), mas o vale continua visível.
 
 ### 3. De onde vem o "fantasma"
 
-Suponha um documento comprimido originalmente com qualidade q0 = 75, no qual
+Supõe-se um documento comprimido originalmente com qualidade q0 = 75, no qual
 o falsificador cola um trecho vindo de outra imagem que tinha sido comprimida
 com qualidade q1 = 60 (ou que nunca tinha sido comprimida). Ao salvar o
 resultado:
@@ -68,9 +70,10 @@ resultado:
   vale em 60, ou nenhum vale.
 
 Calculando d(q) **por bloco** (em vez da imagem inteira) e anotando em cada
-bloco o q que minimiza o erro, obtemos um **mapa espacial de qualidades
-preferidas**. Numa imagem íntegra o mapa é quase uniforme (quase tudo vota
-q0). Numa imagem adulterada aparece uma "mancha" que vota em outra
+bloco o q que minimiza o erro, obtém-se um **mapa espacial de qualidades
+preferidas**. Em teoria, numa imagem íntegra o mapa é quase uniforme (quase tudo
+vota q0). Na prática, neste dataset, muitos blocos de imagens íntegras votam no
+topo da faixa (ver limitações). Numa imagem adulterada aparece uma "mancha" que vota em outra
 qualidade: o fantasma, que aparece no lugar exato da colagem.
 
 Esse método é especialmente sensível quando q1 < q0. Se o trecho colado já
@@ -86,9 +89,13 @@ em q1 sobrevive.
 - **Faixa de qualidades 50–90, de 5 em 5.** A qualidade 95 é excluída de
   propósito. Recomprimir em 95 é quase sem perda: o erro é pequeno para
   QUALQUER bloco, com ou sem histórico, e o 95 "venceria" o argmin na maior
-  parte da imagem sem informar nada sobre q0. Nos testes, incluir o 95 fazia
-  ~95% dos blocos de texto votarem nele. Removendo-o, os mesmos blocos
-  passam a votar no vale verdadeiro (q ≈ 75 neste dataset).
+  parte da imagem sem informar nada sobre q0. Em um teste exploratório com
+  20 imagens autênticas do test (42.737 blocos com textura, fora dos
+  notebooks), incluir o 95 fazia 96,2% dos blocos votarem nele. Sem o 95, o
+  mesmo efeito se repete no novo topo da faixa: 65,5% dos blocos votam em
+  q = 90 (notebook `02_jpeg_ghost.ipynb`, 20 autênticas, 49.433 blocos).
+  Votar na maior qualidade da faixa significa "sem vale detectável no bloco",
+  e não uma qualidade de origem.
 - **Blocos lisos são descartados (valor -1).** No papel em branco, d(q) ≈ 0
   para todas as qualidades e o argmin é arbitrário. Só blocos com desvio
   padrão ≥ 10 níveis de cinza (em geral, os que têm texto) votam.
@@ -113,17 +120,22 @@ em q1 sobrevive.
        exatamente, incluindo a "memória" da quantização. O ghost funciona
        normalmente.
 
-  Por isso, antes da análise, verificamos imagem a imagem se a curva d(q) da
+  Por isso, antes da análise, verifica-se imagem a imagem se a curva d(q) da
   imagem inteira tem um vale interno (`has_jpeg_history`). As imagens deste
-  dataset vêm do SROIE (recibos originalmente digitalizados e salvos em JPEG),
-  e na prática a grande maioria apresenta um vale em q ≈ 75, ou seja, cai no
+  dataset vêm do SROIE e, segundo Martínez Tornés et al. (2023), são imagens
+  JPEG (41 matrizes de quantização distintas). Na prática, 188 das 218 imagens
+  do test (86%) apresentam um vale, concentrado em q = 70–75, ou seja, caem no
   cenário 2. O notebook `02_jpeg_ghost.ipynb` reporta essa contagem.
 - **Edições que não trazem histórico próprio.** Se o falsificador não colou
   nada, mas desenhou um número no Paint ou digitou texto novo, os pixels
   editados nunca foram comprimidos. Eles não "votam" em uma qualidade baixa:
-  tendem a votar na maior qualidade da faixa (curva monotônica). Isso ainda
-  difere do resto da imagem (q0), mas o sinal é mais fraco que no caso
-  clássico de colagem com q1 < q0.
+  tendem a votar na maior qualidade da faixa (curva monotônica). Isso difere
+  do resto da imagem (q0) apenas quando o restante vota em outra qualidade. No
+  test, 33 das 34 regiões anotadas avaliadas votam em q = 90, e o Ghost acerta
+  17 de 18 quando o restante da imagem tem vale local e 0 de 16 quando não tem
+  (notebook `02_jpeg_ghost.ipynb`). Votar em q = 90 não indica edição por si só,
+  porque esse também é o voto mais frequente dos blocos de imagens autênticas
+  (notebook `02_jpeg_ghost.ipynb`).
 - **Copy-move dentro do mesmo documento.** Se o trecho colado vem do **mesmo**
   recibo, ele tem o mesmo histórico q0 do resto, e o ghost não o distingue
   (a menos que a colagem desalinhe a grade 8x8). Para esse caso, uma técnica
@@ -132,6 +144,8 @@ em q1 sobrevive.
   caracteres (às vezes uma região de ~30x40 px). Com blocos de 16x16, isso
   dá só 2 a 6 blocos para votar, e a moda dentro da região fica ruidosa.
   Reduzir o bloco para 8x8 aumenta a resolução, mas também o ruído por bloco.
+  No test, o número de acertos foi o mesmo com blocos de 8x8 e de 16x16
+  (17 de 34), com duas imagens trocando de resultado.
 - **Recorte ou redimensionamento depois da compressão.** Isso desalinha ou
   destrói a grade 8x8. O vale enfraquece ou some na imagem toda (não só na
   região editada).
