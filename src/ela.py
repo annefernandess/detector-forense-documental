@@ -200,5 +200,21 @@ def compute_region_score(image_path: str, diff_map: np.ndarray, regions: list) -
         
     if not annotated_errors:
         return 0.0, 0.0
-        
+
     return float(np.mean(annotated_errors)), float(np.mean(control_errors))
+
+
+def ela_region_score(image_path: str, regions: list, quality: int = 90) -> tuple[float, float]:
+    """
+    Score local da ELA no formato esperado por `evaluate_region_technique`:
+    calcula o mapa (tons de cinza, sem amplificação) e compara as regiões
+    anotadas com um controle. Retorna (média_anotada, média_controle).
+    """
+    ela_map, _ = compute_ela(image_path, quality=quality, amplification=1, grayscale=True)
+    return compute_region_score(image_path, ela_map, regions)
+
+
+def ela_scores_by_quality(samples: list, qualities: list[int]) -> dict[int, list[float]]:
+    """Score ELA (percentil 95, tons de cinza) de cada amostra, para cada qualidade de recompressão."""
+    return {q: [compute_ela(s.image_path, quality=q, grayscale=True)[1] for s in samples]
+            for q in qualities}
