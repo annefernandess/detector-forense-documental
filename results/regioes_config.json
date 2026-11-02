@@ -1,0 +1,23 @@
+{
+  "percentil": 99,
+  "max_caixas": 2,
+  "contraste_min": 2.5,
+  "precisao_val": 0.5238095238095238,
+  "taxa_acerto_val": 0.18181818181818182,
+  "falso_alarme_val": 0.2893081761006289,
+  "acerto_aleatorio_val": 0.15696969696969695,
+  "limite_falso_alarme": 0.3,
+  "criterio_atingido": true,
+  "regra_acerto": "IoU >= 0,1 com região anotada modificada, ou centro da caixa dentro dela",
+  "n_val": {
+    "adulteradas": 33,
+    "autenticas": 159
+  },
+  "explicacao": {
+    "correlacao_pares": 0.99,
+    "limite_muitos_pares": 5,
+    "origem_limite": "percentil 99 de pares por imagem nas autênticas do val, arredondado para cima; 'muitos' = esse número de pares ou mais"
+  },
+  "nota": "calibrado no val",
+  "gerado_em": "2026-11-02T16:33:30"
+}
