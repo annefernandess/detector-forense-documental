@@ -1,0 +1,31 @@
+{
+  "versao": "v2",
+  "features": [
+    "ela_p95",
+    "copy_move_peak",
+    "ghost_q90_frac",
+    "has_jpeg_history",
+    "noise_std",
+    "noise_p95",
+    "edge_std",
+    "ela_comp_max_z",
+    "ela_comp_frac_out",
+    "noise_comp_max_z",
+    "edge_comp_max_z",
+    "intensity_comp_max_z"
+  ],
+  "modelo": "regressão logística (class_weight='balanced', max_iter=1000, random_state=42) com StandardScaler no pipeline",
+  "treino": "train + val (769 imagens)",
+  "limiar": 0.49656330908964424,
+  "auc_externa_cv": {
+    "media": 0.6654155672331545,
+    "desvio": 0.04678414248662918,
+    "folds": "5 folds x 3 repetições, seed 42"
+  },
+  "auc_test": {
+    "valor": 0.626,
+    "origem": "notebooks/04_classificador.ipynb (não recalculada)"
+  },
+  "congelado_em": "2026-11-02T15:25:13",
+  "nota": "test usado nas avaliações v1 e v2"
+}
