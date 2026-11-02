@@ -7,7 +7,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
 import numpy as np
 
-from copy_move import correlation_peak
+from copy_move import blind_copy_move, correlation_peak
 from evaluation import youden_threshold
 
 rng = np.random.default_rng(42)
@@ -31,5 +31,17 @@ assert correlation_peak(img3, (0, 0, 10, 10)) == (None, None)
 # Youden: J empata em 0,667 de 0,95 a 0,999; fica o primeiro candidato.
 t, tpr, fpr = youden_threshold([0.99, 1.0, 1.0], [0.5, 0.9, 0.995], [0.9, 0.95, 0.99, 0.999])
 assert (t, tpr, round(fpr, 3)) == (0.95, 1.0, 0.333), (t, tpr, fpr)
+
+# Busca cega: um caractere copiado para outro ponto aparece como par; o próprio
+# caractere não conta como cópia.
+blank = np.full((300, 1000), 255, np.float32)
+glyph = (rng.integers(0, 2, (14, 10)) * 255).astype(np.float32)
+glyph[:, 0] = 255; glyph[0, :] = 255          # borda clara, para o Otsu separar o caractere
+blank[50:64, 100:110] = glyph
+blank[200:214, 600:610] = glyph               # cópia exata, no mesmo tamanho de imagem
+pairs, boxes = blind_copy_move(blank, 0.99, width=1000)
+# o componente de tinta começa em (101, 51) e (601, 201): a borda clara do caractere fica de fora
+assert any({src[:2], dst[:2]} == {(101, 51), (601, 201)} for src, dst, _ in pairs), pairs
+assert all(src[:2] != dst[:2] for src, dst, _ in pairs)
 
 print("ok")
