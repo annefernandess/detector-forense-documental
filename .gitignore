@@ -12,6 +12,7 @@ __pycache__/
 # Dataset e arquivos gerados a partir dele (features em CSV, probabilidades por imagem)
 data/
 results/probabilidades_val_v2.csv
+results/figuras_demo/
 data/findit2/
 data/authentic/*
 data/tampered/*
