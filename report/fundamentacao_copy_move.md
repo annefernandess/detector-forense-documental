@@ -95,10 +95,7 @@ máscara e normaliza pelo produto das normas.
   `test`, as duas imagens sem CPI detectadas têm apenas adulterações do tipo IMI.
 - **Cópia de outro documento (CPO).** A origem não está na imagem, e a técnica
   não tem com o que comparar.
-- **Avaliação com as caixas anotadas.** A avaliação mede se a região modificada
-  tem uma cópia quase exata, e não se o método encontra a região sem as
-  anotações. Uma busca cega exige comparar todos os trechos da imagem entre si,
-  como na comparação de blocos de Fridrich et al. (2003), e não foi feita.
+- **Avaliação com as caixas anotadas e busca cega.** A avaliação das seções 1 a 6 mede se a região modificada tem uma cópia quase exata. A busca cega (seções 7 a 9) não usa as anotações e tem precisão baixa no test: 9 de 41 imagens sinalizadas são de fato CPI (cerca de 22%), e 10,5% das regiões CPI são cobertas. As causas são caracteres repetidos, que geram correlações entre 0,99 e 0,9999, e cópias fundidas com caracteres vizinhos. Por isso, a busca cega não serve como triagem nesta forma.
 
 ### 5. Relação com o material da disciplina
 
