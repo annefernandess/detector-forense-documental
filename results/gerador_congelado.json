@@ -1,0 +1,24 @@
+{
+  "arquivo": "src/gerar_copy_move_sintetico.py",
+  "sha256": "75bd3bfe3ee82a73db5623d5426cbd7f43abd4c852a544cc01a560a5c9c364d9",
+  "seed": 42,
+  "limites_caixa": {
+    "lado_min_fracao_da_largura": 0.01,
+    "lado_max_fracao_da_largura": 0.06,
+    "area_tinta_min_origem_px": 20,
+    "fracao_tinta_min_origem": 0.15
+  },
+  "destino": {
+    "area_tinta_min_componente_px": 15,
+    "fracao_tinta_min_caixa": 0.1,
+    "tentativas": 200,
+    "ponto": "centroide de outro componente de texto; caixa centrada nele"
+  },
+  "regras": [
+    "sem sobreposição entre caixa de origem e de destino",
+    "caixa de destino inteira dentro da imagem",
+    "pixels colados copiados sem transformação",
+    "máscara de Otsu como em features._text_mask"
+  ],
+  "observacao_pre_pipeline": "Em teste de viabilidade (só o gerador, sem pipeline), 10 das 200 notas não têm componente na faixa de tamanho (fotos com fundo escuro/texturizado): cord_validation_0009,0025,0045,0059,0068 e cord_test_0018,0020,0038,0039,0061."
+}
