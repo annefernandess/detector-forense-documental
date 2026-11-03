@@ -1,0 +1,101 @@
+{
+  "aviso": "segundo uso de data/cord_sintetico/ (o primeiro foi o notebook 07)",
+  "n_adulteradas": 95,
+  "ela": {
+    "padrao": {
+      "tecnica": "ela",
+      "qualidade": 90,
+      "percentil": null,
+      "n": 95,
+      "acertos": 85,
+      "taxa_real": 0.8947368421052632,
+      "real_ic_min": 0.8169777184937429,
+      "real_ic_max": 0.9418121027960785,
+      "taxa_acaso": 0.45,
+      "acaso_ic_min": 0.42775319794623956,
+      "acaso_ic_max": 0.47244858354650665,
+      "diferenca": 0.44473684210526315,
+      "exclusoes": "{'text_mask_failed': 0, 'real_region_failed': 0, 'few_valid_pseudo': 0}"
+    },
+    "escolhida": {
+      "tecnica": "ela",
+      "qualidade": 90,
+      "percentil": 95.0,
+      "n": 95,
+      "acertos": 83,
+      "taxa_real": 0.8736842105263158,
+      "real_ic_min": 0.7920768455041922,
+      "real_ic_max": 0.9262441853168388,
+      "taxa_acaso": 0.31157894736842107,
+      "acaso_ic_min": 0.2911514355305948,
+      "acaso_ic_max": 0.332766856831543,
+      "diferenca": 0.5621052631578948,
+      "exclusoes": "{'text_mask_failed': 0, 'real_region_failed': 0, 'few_valid_pseudo': 0}"
+    },
+    "trocou": true
+  },
+  "ghost": {
+    "padrao": {
+      "tecnica": "ghost",
+      "block_size": 16,
+      "n": 21,
+      "acertos": 3,
+      "taxa_real": 0.14285714285714285,
+      "real_ic_min": 0.04980921798213492,
+      "real_ic_max": 0.346364941492295,
+      "taxa_acaso": 0.009523809523809525,
+      "acaso_ic_min": 0.0035000485681456767,
+      "acaso_ic_max": 0.02976640212709123,
+      "diferenca": 0.13333333333333333,
+      "exclusoes": "{'text_mask_failed': 0, 'real_region_failed': 33, 'few_valid_pseudo': 41}"
+    },
+    "escolhida": {
+      "tecnica": "ghost",
+      "block_size": 16,
+      "n": 21,
+      "acertos": 3,
+      "taxa_real": 0.14285714285714285,
+      "real_ic_min": 0.04980921798213492,
+      "real_ic_max": 0.346364941492295,
+      "taxa_acaso": 0.009523809523809525,
+      "acaso_ic_min": 0.0035000485681456767,
+      "acaso_ic_max": 0.02976640212709123,
+      "diferenca": 0.13333333333333333,
+      "exclusoes": "{'text_mask_failed': 0, 'real_region_failed': 33, 'few_valid_pseudo': 41}"
+    },
+    "trocou": false
+  },
+  "copy_move": {
+    "padrao": {
+      "tecnica": "copy_move",
+      "limiar": 0.99,
+      "cobertura": 0.5,
+      "n": 95,
+      "acertos": 1,
+      "taxa_real": 0.010526315789473684,
+      "real_ic_min": 0.0018605283639709959,
+      "real_ic_max": 0.05724009323665061,
+      "taxa_acaso": 0.0,
+      "acaso_ic_min": -2.168404344971009e-19,
+      "acaso_ic_max": 0.002017814927460352,
+      "diferenca": 0.010526315789473684,
+      "exclusoes": "{'text_mask_failed': 0, 'real_region_failed': 0, 'few_valid_pseudo': 0}"
+    },
+    "escolhida": {
+      "tecnica": "copy_move",
+      "limiar": 0.99,
+      "cobertura": 0.5,
+      "n": 95,
+      "acertos": 1,
+      "taxa_real": 0.010526315789473684,
+      "real_ic_min": 0.0018605283639709959,
+      "real_ic_max": 0.05724009323665061,
+      "taxa_acaso": 0.0,
+      "acaso_ic_min": -2.168404344971009e-19,
+      "acaso_ic_max": 0.002017814927460352,
+      "diferenca": 0.010526315789473684,
+      "exclusoes": "{'text_mask_failed': 0, 'real_region_failed': 0, 'few_valid_pseudo': 0}"
+    },
+    "trocou": false
+  }
+}

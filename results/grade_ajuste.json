@@ -1,0 +1,57 @@
+{
+  "congelado_em": "2026-11-03T12:59:39",
+  "arquivo": "src/ajuste_parametros.py",
+  "sha256": "bc239c44698cb7195f441464c0ca87584a206b2f65d22d100d7d7daa1b81d189",
+  "gerador_sha256": "75bd3bfe3ee82a73db5623d5426cbd7f43abd4c852a544cc01a560a5c9c364d9",
+  "gerador_sha256_conferido_com": "75bd3bfe3ee82a73db5623d5426cbd7f43abd4c852a544cc01a560a5c9c364d9",
+  "grade": {
+    "ela": {
+      "qualidade": [
+        80,
+        90
+      ],
+      "percentil": [
+        95,
+        99
+      ]
+    },
+    "ghost": {
+      "block_size": [
+        8,
+        16,
+        32
+      ],
+      "qualidades": "50 a 90 passo 5 (fixa)"
+    },
+    "copy_move_busca_cega": {
+      "limiar": [
+        0.95,
+        0.979,
+        0.99
+      ],
+      "cobertura": [
+        0.3,
+        0.5
+      ]
+    },
+    "classificador": "não alterado"
+  },
+  "padroes": {
+    "ela": "q=90, média do erro na região (sem percentil)",
+    "ghost": "block_size=16",
+    "copy_move_busca_cega": "limiar 0,99; cobertura 0,5"
+  },
+  "criterio": {
+    "medida": "acerto de localização na caixa colada menos o acerto de pseudo-regiões ao acaso (evaluate_region_technique, seed 42)",
+    "substitui_a_padrao_se": "diferença (real - acaso) maior em pelo menos 0,05 que a da padrão E limite inferior do Wilson do acerto real acima do limite superior do Wilson do acaso",
+    "empate_ou_nenhuma": "mantém a padrão; entre as que cumprem, a de maior diferença",
+    "cada_tecnica_e_escolhida_separadamente": true
+  },
+  "desenvolvimento": {
+    "origem": "CORD train, 800 notas (data/cord/treino/)",
+    "conjunto": "data/cord_sintetico_dev/ (gerador congelado, seed 42; só adulteradas, pois a medida é de localização)",
+    "n_adulteradas": 766,
+    "notas_sem_par_excluidas": 34
+  },
+  "avaliacao_final": "data/cord_sintetico/ (95 + 95, segundo uso desse conjunto; o primeiro foi o notebook 07)"
+}
