@@ -14,9 +14,25 @@
     "autenticas": 159
   },
   "explicacao": {
-    "correlacao_pares": 0.99,
-    "limite_muitos_pares": 5,
-    "origem_limite": "percentil 99 de pares por imagem nas autênticas do val, arredondado para cima; 'muitos' = esse número de pares ou mais"
+    "tecnica_pares": {
+      "piso_intensidade": 0.95,
+      "k": 3,
+      "limiar_residuo": 0.9,
+      "fonte": "results/configuracao_candidato.json"
+    },
+    "limite_muitos_pares": 15,
+    "origem_limite": "percentil 99 do número de pares aprovados pela técnica 1 por imagem, nas autênticas de train + val (642 imagens), arredondado para cima; 'muitos' = esse número de pares ou mais",
+    "distribuicao_pares_autenticas": {
+      "imagens": 642,
+      "minimo": 0,
+      "mediana": 0.0,
+      "p90": 2.0,
+      "p95": 4.0,
+      "p99": 14.180000000000064,
+      "maximo": 51,
+      "imagens_com_algum_par": 135
+    },
+    "calculado_em": "2026-11-08T10:51:46"
   },
   "nota": "calibrado no val",
   "gerado_em": "2026-11-02T16:33:30"

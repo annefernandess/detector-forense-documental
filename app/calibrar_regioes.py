@@ -1,8 +1,8 @@
 """
-Calibra as caixas automáticas de região (src/regioes.py) e o limiar da regra de texto
-(src/explicacao.py) usando SÓ o conjunto de validação; o test nunca é lido. As anotações são
-usadas apenas aqui, para medir a precisão das caixas; nunca para gerar caixas nem na interface.
-Grava results/regioes_config.json e results/regioes_calibracao.csv.
+Calibra as caixas automáticas de região (src/regioes.py) usando SÓ o conjunto de validação; o test nunca é
+lido. As anotações são usadas apenas aqui, para medir a precisão das caixas; nunca para gerar caixas nem na
+interface. Grava results/regioes_config.json e results/regioes_calibracao.csv. O limite de "muitos pares" do
+texto (bloco "explicacao" do JSON) vem de app/calibrar_limite_pares.py; este script o preserva.
 Rodar na raiz do projeto: python app/calibrar_regioes.py
 """
 
@@ -23,7 +23,6 @@ import cv2
 import numpy as np
 import pandas as pd
 
-from copy_move import blind_copy_move_for_path
 from dataset_loader import load_dataset
 from ela import compute_ela
 from regioes import mapa_para_1000, regioes_ela
@@ -32,7 +31,6 @@ PERCENTIS = (95, 98, 99)
 MAX_CAIXAS = (1, 2, 3)
 CONTRASTES = (0.0, 2.0, 2.5, 3.0)  # níveis de cinza acima da mediana; 0 = sem filtro de contraste
 LIMITE_FALSO_ALARME = 0.30
-LIMIAR_PARES = 0.99  # busca cega de copy-move, escolhido no val (notebook 03)
 SORTEIOS = 50
 SEED = 42
 
@@ -41,11 +39,6 @@ def _mapa(caminho):
     cv2.setNumThreads(1)
     bruto = compute_ela(caminho, quality=90, amplification=1, grayscale=True)[0]
     return os.path.basename(caminho), mapa_para_1000(bruto), bruto.shape[::-1]
-
-
-def _pares(caminho):
-    cv2.setNumThreads(1)
-    return len(blind_copy_move_for_path(caminho, LIMIAR_PARES)[0])
 
 
 def _iou(a, b) -> float:
@@ -115,15 +108,14 @@ if __name__ == "__main__":
     caminhos = [s.image_path for s in val]
     with get_context("fork").Pool(10) as pool:
         mapas = {n: (m, wh) for n, m, wh in pool.map(_mapa, caminhos)}
-        pares = np.array(pool.map(_pares, caminhos))
 
     linhas = [medir(mapas, adulteradas, autenticas, p, m, k)
               for k, p, m in itertools.product(CONTRASTES, PERCENTIS, MAX_CAIXAS)]
     tabela = pd.DataFrame(linhas)
     melhor, atingido = escolher(tabela)
 
-    pares_autenticas = pares[[not s.is_tampered for s in val]]
-    limite_muitos = int(np.ceil(np.percentile(pares_autenticas, 99)))
+    destino = ROOT / "results/regioes_config.json"
+    explicacao = json.loads(destino.read_text(encoding="utf-8"))["explicacao"]  # de calibrar_limite_pares.py; falha se faltar
     config = {
         "percentil": int(melhor["percentil"]), "max_caixas": int(melhor["max_caixas"]),
         "contraste_min": float(melhor["contraste_min"]),
@@ -132,14 +124,13 @@ if __name__ == "__main__":
         "limite_falso_alarme": LIMITE_FALSO_ALARME, "criterio_atingido": bool(atingido),
         "regra_acerto": "IoU >= 0,1 com região anotada modificada, ou centro da caixa dentro dela",
         "n_val": {"adulteradas": len(adulteradas), "autenticas": len(autenticas)},
-        "explicacao": {"correlacao_pares": LIMIAR_PARES, "limite_muitos_pares": limite_muitos,
-                       "origem_limite": "percentil 99 de pares por imagem nas autênticas do val, arredondado para cima; 'muitos' = esse número de pares ou mais"},
+        "explicacao": explicacao,
         "nota": "calibrado no val",
         "gerado_em": datetime.now().isoformat(timespec="seconds"),
     }
     (ROOT / "results").mkdir(exist_ok=True)
     tabela.to_csv(ROOT / "results/regioes_calibracao.csv", index=False)
-    (ROOT / "results/regioes_config.json").write_text(json.dumps(config, ensure_ascii=False, indent=2), encoding="utf-8")
+    destino.write_text(json.dumps(config, ensure_ascii=False, indent=2), encoding="utf-8")
 
     pd.set_option("display.width", 200)
     print(f"val: {len(adulteradas)} adulteradas, {len(autenticas)} autênticas | limite de falso alarme: {LIMITE_FALSO_ALARME:.0%}")

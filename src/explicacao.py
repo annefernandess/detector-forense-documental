@@ -8,9 +8,10 @@ destacada.
 
 from __future__ import annotations
 
-# Limiares fixos, escolhidos só no val (app/calibrar_regioes.py, results/regioes_config.json):
-# a partir de 5 pares, a imagem tem mais pares do que o percentil 99 (4,3) das autênticas do val.
-MUITOS_PARES = 5
+# Limiar fixo (app/calibrar_limite_pares.py, results/regioes_config.json): percentil 99 do número de pares
+# aprovados pela técnica 1 por imagem nas autênticas de train + val (642 imagens; p99 = 14,18), arredondado
+# para cima. A partir de 15 pares, a imagem tem mais pares do que 99% das autênticas.
+MUITOS_PARES = 15
 
 _POSICOES = [["no canto superior esquerdo", "na parte superior", "no canto superior direito"],
              ["no lado esquerdo", "no centro", "no lado direito"],
