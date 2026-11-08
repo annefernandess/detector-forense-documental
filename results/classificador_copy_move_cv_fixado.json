@@ -1,0 +1,39 @@
+{
+  "congelado_em": "2026-11-06T17:57:08",
+  "codigo": {
+    "src/copy_move_feature.py": "249c1d7be8d4480010b9f778813c2097488eae3a2819f83bacff55c3eb55eabb"
+  },
+  "teste": {
+    "tests/test_copy_move_feature.py": "1ad5c60408cd6dd7b16e486b22874dc746083b3089f033118f1b76afec27b972"
+  },
+  "reutiliza_sem_alterar": {
+    "src/copy_move_residuo.py": "4ccc00134fd815c13cb08763fcfbfd49d8e8ac4d9ec8365f8fd1be4c0fdc27c8",
+    "src/copy_move.py": "283fff5895f04f0be4698e816626899d57292d39122b665d188538d340ac4f07",
+    "src/comparacao_cv.py": "95c5a0ced530e50c3bc6a3b399b61637187cf512b26eac0eb6e10a7c7243692c"
+  },
+  "feature_nova": {
+    "nome": "copy_move_par",
+    "tipo": "binária",
+    "definicao": "1 se a imagem tem algum par aprovado pela técnica 1 (copy_move_residuo.candidatos + filtrar_pares), 0 caso contrário",
+    "configuracao": {
+      "piso_intensidade": 0.95,
+      "k": 3,
+      "limiar_residuo": 0.9,
+      "deslocamento_px": 2,
+      "min_side": 6,
+      "cobertura_minima": 0.5,
+      "observacao_cobertura": "a cobertura mede regiões anotadas e não entra na feature de imagem",
+      "origem": "results/copy_move_residuo_val.json (val.escolhida); sha256 do arquivo no campo abaixo"
+    },
+    "sha256_arquivo_da_configuracao": "b5fc76549927f188da305630d8b812941c5026089818d0bda741a5777bde7c99",
+    "sem_outras_features": true,
+    "indefinida": "não existe: a feature vale 0 ou 1 em toda imagem; qualquer falha interrompe a execução"
+  },
+  "dados": "train + val do Find it again!, 769 imagens (127 adulteradas, 642 autênticas); test não aberto",
+  "protocolo": "o do v2: comparacao_cv.auc_por_particao, StandardScaler + LogisticRegression(class_weight='balanced', max_iter=1000, random_state=42), RepeatedStratifiedKFold 5 x 3, seed 42; a média do v2 deve reproduzir 0,665416 +- 0,046784",
+  "criterio": "AUC externa média do candidato (v2 + a feature) >= 0,70 E limite inferior do IC95 corrigido (Nadeau e Bengio) da diferença pareada contra o v2 > 0",
+  "paralelismo": "nenhum (sequencial); sem fork",
+  "ressalva_conhecida": "a configuração (piso, k, limiar) foi escolhida no val do Find it again!, que faz parte dos 769; a feature carrega seleção no val",
+  "seed": 42,
+  "proibido": "abrir o test do Find it again!; alterar src/copy_move_residuo.py, src/copy_move.py, o classificador v2 ou arquivos congelados de results/"
+}

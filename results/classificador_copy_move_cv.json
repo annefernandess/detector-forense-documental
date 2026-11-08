@@ -1,0 +1,97 @@
+{
+  "escopo": "train + val do Find it again!; test não aberto",
+  "n_imagens": 769,
+  "feature_nova": [
+    "copy_move_par"
+  ],
+  "configuracao_tecnica_1": {
+    "piso_intensidade": 0.95,
+    "k": 3,
+    "limiar_residuo": 0.9,
+    "deslocamento_px": 2,
+    "min_side": 6,
+    "cobertura_minima": 0.5,
+    "observacao_cobertura": "a cobertura mede regiões anotadas e não entra na feature de imagem",
+    "origem": "results/copy_move_residuo_val.json (val.escolhida); sha256 do arquivo no campo abaixo"
+  },
+  "fracao_com_par": {
+    "adulteradas": 0.5511811023622047,
+    "autenticas": 0.2102803738317757,
+    "n_adulteradas_com_par": 70,
+    "n_autenticas_com_par": 135
+  },
+  "v2": {
+    "auc_media": 0.6654155672331545,
+    "auc_desvio": 0.04678414248662918,
+    "auc_por_particao": [
+      0.6412259615384616,
+      0.6983173076923077,
+      0.6195348837209302,
+      0.6694573643410853,
+      0.6909375,
+      0.7373798076923077,
+      0.6580528846153846,
+      0.6027906976744186,
+      0.768062015503876,
+      0.5925,
+      0.6622596153846154,
+      0.7058293269230769,
+      0.6623255813953488,
+      0.6322480620155039,
+      0.6403125
+    ],
+    "reproduz_registrado": true
+  },
+  "candidato": {
+    "auc_media": 0.7275535865136156,
+    "auc_desvio": 0.04085243029017118,
+    "auc_por_particao": [
+      0.7620192307692308,
+      0.7593149038461539,
+      0.6669767441860466,
+      0.7203100775193798,
+      0.7187500000000001,
+      0.782752403846154,
+      0.7397836538461539,
+      0.6716279069767441,
+      0.8077519379844962,
+      0.6596875,
+      0.7052283653846154,
+      0.7259615384615384,
+      0.7308527131782946,
+      0.7072868217054264,
+      0.755
+    ]
+  },
+  "diferenca_pareada": {
+    "diferenca_media": 0.06213801928046117,
+    "desvio": 0.028414295538501076,
+    "n_particoes": 15,
+    "ic95_corrigido": [
+      0.027843701013122037,
+      0.09643233754780031
+    ],
+    "ic95_ingenuo": [
+      0.046402706894676723,
+      0.07787333166624562
+    ]
+  },
+  "auc_isolada": {
+    "auc": 0.6704503642652145,
+    "ic_bootstrap": [
+      0.6229570517517006,
+      0.7160678067958618
+    ],
+    "sensibilidade": 0.5511811023622047,
+    "taxa_falso_alarme": 0.2102803738317757
+  },
+  "criterio": {
+    "auc_externa_minima": 0.7,
+    "atingiu_auc": true,
+    "atingiu_diferenca": true,
+    "atingido": true
+  },
+  "codigo_sha256": {
+    "src/copy_move_feature.py": "249c1d7be8d4480010b9f778813c2097488eae3a2819f83bacff55c3eb55eabb"
+  }
+}
