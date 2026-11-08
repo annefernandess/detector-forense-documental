@@ -1,0 +1,37 @@
+{
+  "escopo": "só train do Find it again!",
+  "limiar_razao": 1.2,
+  "definicao": "razão pooled = média do gradiente em colunas e linhas = 0 mod 8 / média nas demais",
+  "regra_de_parada": "parar se < 50% das autênticas tiverem grade detectada (razão pooled >= 1,2)",
+  "tabela": {
+    "autenticas": {
+      "n": 483,
+      "fracao_detectada_pooled": 0.2795031055900621,
+      "fracao_ambos_eixos": 0.15942028985507245,
+      "fracao_algum_eixo": 0.36231884057971014,
+      "razao_pooled_percentis_5_25_50_75_95": [
+        0.9724896929075092,
+        1.0134572461491032,
+        1.109536291507532,
+        1.2202289503006134,
+        1.7543823280694246
+      ]
+    },
+    "falsificadas": {
+      "n": 94,
+      "fracao_detectada_pooled": 0.3617021276595745,
+      "fracao_ambos_eixos": 0.20212765957446807,
+      "fracao_algum_eixo": 0.43617021276595747,
+      "razao_pooled_percentis_5_25_50_75_95": [
+        0.9775775882471679,
+        1.0263467167571891,
+        1.1177407304300762,
+        1.2481895103126195,
+        1.8534187372062403
+      ]
+    }
+  },
+  "parar": true,
+  "codigo": "notebooks/diagnostico_grade_train.py",
+  "codigo_sha256": "5c0ad8e15f99c49947e9f43f1a86f680cd4d58a2f44fbf640a0500c6a574cffa"
+}
