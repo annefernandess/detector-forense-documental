@@ -10,7 +10,7 @@ sys.path.insert(0, str(ROOT / "src"))
 sys.path.insert(0, str(ROOT / "app"))
 
 import textos as T
-from pipeline import METRICAS_TEST
+from pipeline import metricas_candidato
 
 warnings.filterwarnings("ignore", message=".*encountered in matmul", category=RuntimeWarning)
 
@@ -77,14 +77,16 @@ for nome, texto, _ in textos_do_modulo():
     if "fraude" in texto.lower():
         assert re.search(r"não (confirma|decide)", texto, re.I), (nome, texto)
 
-# 2. Números: calculados das contagens do teste, conferidos com as frases ("1 em cada N").
-assert T.uma_em_cada(METRICAS_TEST["sensibilidade"]) == "1 em cada 2"
-assert T.uma_em_cada(METRICAS_TEST["precisao"]) == "1 em cada 5"
-assert T.uma_em_cada(64 / 183) == "1 em cada 3"
-medidos = T.numeros_medidos(METRICAS_TEST)
-for trecho in ("1 em cada 2 documentos editados (16 de 35)", "1 em cada 5 era de fato editado (16 de 80)",
-               "1 em cada 3 (64 de 183)", "otimistas"):
+# 2. Números: vêm de results/configuracao_candidato.json (sensibilidade 75,3% e especificidade 60,1% nas previsões
+# fora da amostra de train + val), conferidos com as frases; a declaração e a posição seguem os textos combinados.
+m = metricas_candidato()
+assert (round(m["sensibilidade"], 3), round(m["especificidade"], 3)) == (0.753, 0.601), m
+medidos = T.numeros_medidos(m)
+for trecho in ("cerca de 75% dos documentos editados", "cerca de 40% dos documentos sem edição", "otimistas"):
     assert trecho in medidos, trecho
+assert T.posicao_frase(72.4) == "Esta imagem está em posição mais alta que 72% dos recibos de referência deste tipo."
+assert T.DECLARACAO == ("Esta ferramenta foi validada apenas para recibos semelhantes aos do conjunto Find it again!. "
+                        "Ela ordena documentos para revisão e não confirma fraude.")
 
 # 3. Página renderizada: sem jargão fora dos textos de ajuda, nos três estados.
 from streamlit.testing.v1 import AppTest
@@ -116,8 +118,9 @@ for nome, (app, _) in estados.items():
     texto, ajuda = visiveis(app)
     assert not PROIBIDAS.search(texto), (nome, PROIBIDAS.search(texto).group())
     assert not tem_jargao(texto), (nome, tem_jargao(texto).group())
+    assert T.DECLARACAO in texto, nome  # a declaração aparece em todos os estados
     if nome != "inicial":
-        assert "Ela não decide se houve fraude." in texto and "pontuação maior que" in texto, nome
+        assert "Ela não decide se houve fraude." in texto and "posição mais alta que" in texto, nome
         assert len(ajuda) == 4, (nome, len(ajuda))  # 4 textos de ajuda, todos com 2 frases
         for a in ajuda:
             assert len(frases(a)) == 2, a

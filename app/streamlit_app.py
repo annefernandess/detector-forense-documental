@@ -1,7 +1,7 @@
 """
 Interface do detector: triagem de recibos digitalizados, em três etapas (enviar, ver o resultado,
-entender o porquê). Carrega o modelo congelado (v2) e o limiar de results/; não treina, não
-recalibra e não lê o test. Rodar a partir da raiz do projeto: streamlit run app/streamlit_app.py
+entender o porquê). Carrega o classificador candidato congelado e o limiar de results/; não treina,
+não recalibra e não lê o test. Rodar a partir da raiz do projeto: streamlit run app/streamlit_app.py
 """
 
 from __future__ import annotations
@@ -24,7 +24,7 @@ from dataset_loader import load_dataset
 from estilo import CSS, etapas_html, figura_html, resultado_html
 from explicacao import resumo
 from overlays import desenhar_gabarito, painel_copy_move, painel_ela, painel_ghost, painel_original
-from pipeline import METRICAS_TEST, analisar_imagem
+from pipeline import analisar_imagem, metricas_candidato
 
 st.set_page_config(page_title=T.TITULO, page_icon="🔎", layout="centered")
 st.markdown(f"<style>{CSS}</style>", unsafe_allow_html=True)
@@ -87,6 +87,7 @@ demo = st.query_params.get("demo") == "1"
 
 st.title(T.TITULO)
 st.markdown(f'<p class="subtitulo">{T.SUBTITULO}</p>', unsafe_allow_html=True)
+st.markdown(f'<p class="subtitulo"><strong>{T.DECLARACAO}</strong></p>', unsafe_allow_html=True)
 if demo:
     st.markdown(f'<div class="demo-aviso" role="note">⚠ {T.DEMO_AVISO}</div>', unsafe_allow_html=True)
     st.markdown(f'<p class="link-discreto"><a href="?" target="_self">{T.DEMO_SAIR}</a></p>', unsafe_allow_html=True)
@@ -159,7 +160,7 @@ if r["posicao"] is not None:
 else:
     st.write(T.POSICAO_ALT)
 ajuda(T.POSICAO_AJUDA)
-st.write(T.numeros_medidos(METRICAS_TEST))
+st.write(T.numeros_medidos(metricas_candidato()))
 
 # Etapa 3: mapas
 st.header("3. " + T.ETAPAS[2][0])

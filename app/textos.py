@@ -22,6 +22,8 @@ EXEMPLOS_TITULO = "Ou teste com um exemplo"
 EXEMPLOS_AVISO = "Os exemplos são recibos de um conjunto de dados de pesquisa. Escolha um para ver como funciona."
 ANALISANDO = "Analisando, pode levar alguns segundos..."
 AGUARDANDO = "Envie uma imagem ou escolha um exemplo para começar."
+DECLARACAO = ("Esta ferramenta foi validada apenas para recibos semelhantes aos do conjunto Find it again!. "
+              "Ela ordena documentos para revisão e não confirma fraude.")
 
 ERRO_FORMATO = "Este arquivo não é PNG nem JPG. Envie uma imagem em um desses formatos."
 ERRO_ABRIR = "Não foi possível abrir esta imagem. Tente outro arquivo."
@@ -51,36 +53,27 @@ COMO_LER_FAIXA = ("**Revisar** quer dizer que a pontuação passou do limite de 
                   "**Sem sinal relevante** quer dizer que ficou abaixo dele.")
 COMO_LER_REGRA = "Esta ferramenta ordena documentos para revisão. Ela não decide se houve fraude."
 POSICAO_ALT = "A comparação com os documentos de referência não está disponível nesta instalação."
-POSICAO_AJUDA = ("A pontuação resume vários sinais da imagem; quanto mais alta, mais sinais de atenção. "
-                 "Os documentos de referência são recibos do conjunto de validação, que também ajudaram a ajustar "
-                 "a ferramenta, então a comparação é otimista.")
+POSICAO_AJUDA = ("A posição resume vários sinais da imagem; quanto mais alta, mais sinais de atenção. "
+                 "Os recibos de referência são os de treino e validação do conjunto de dados, comparados por previsões "
+                 "feitas sem que o próprio recibo participasse do ajuste da ferramenta.")
 
 
 def posicao_frase(posicao: float) -> str:
-    return f"Esta imagem tem pontuação maior que {posicao:.0f}% dos documentos de referência."
+    return f"Esta imagem está em posição mais alta que {posicao:.0f}% dos recibos de referência deste tipo."
 
 
 def posicao_html(posicao: float) -> str:
     """Mesma frase de posicao_frase, com o número em destaque (classe .posicao da interface)."""
-    return f"Esta imagem tem pontuação maior que <strong>{posicao:.0f}%</strong> dos documentos de referência."
-
-
-def uma_em_cada(fracao: float) -> str:
-    """'1 em cada N' com N = inverso da fração, arredondado."""
-    return f"1 em cada {round(1 / fracao)}"
+    return f"Esta imagem está em posição mais alta que <strong>{posicao:.0f}%</strong> dos recibos de referência deste tipo."
 
 
 def numeros_medidos(m: dict) -> str:
-    """Números medidos no conjunto de teste (METRICAS_TEST), em texto simples."""
-    marcados = m["marcadas_adulteradas"] + m["marcadas_autenticas"]
+    """Sensibilidade e especificidade (metricas_candidato), medidas por validação cruzada em train + val, em texto simples."""
     return (
-        "Em testes com documentos que não tinham sido usados para ajustar a ferramenta, ela sinalizou cerca de "
-        f"{uma_em_cada(m['sensibilidade'])} documentos editados ({m['marcadas_adulteradas']} de {m['adulteradas']}). "
-        f"Entre os sinalizados, cerca de {uma_em_cada(m['precisao'])} era de fato editado "
-        f"({m['marcadas_adulteradas']} de {marcados}). "
-        f"Em documentos sem edição, ela sinalizou cerca de {uma_em_cada(m['marcadas_autenticas'] / m['autenticas'])} "
-        f"({m['marcadas_autenticas']} de {m['autenticas']}). "
-        "Esses números podem ser otimistas, porque os documentos de teste já foram usados em uma tentativa anterior."
+        "Em recibos de treino e validação do conjunto de dados, cada um avaliado por um modelo que não o viu no ajuste, "
+        f"a ferramenta sinalizou cerca de {m['sensibilidade']:.0%} dos documentos editados e "
+        f"cerca de {1 - m['especificidade']:.0%} dos documentos sem edição. "
+        "Esses números podem ser otimistas, porque os mesmos recibos ajudaram a escolher o limite de atenção."
     )
 
 

@@ -11,8 +11,12 @@ sys.path.insert(0, str(ROOT / "src"))
 
 import pandas as pd
 
+
 from overlays import painel_copy_move, painel_ela, painel_ghost, painel_original, recortar
-from pipeline import METRICAS_TEST, analisar_imagem, faixa_e_posicao
+from copy_move_feature import feature_copy_move
+from dataset_loader import load_gray
+from pipeline import (analisar_imagem, carregar_candidato, faixa_e_posicao, metricas_candidato, pontuacoes_referencia,
+                      verificar_hash)
 import numpy as np
 
 warnings.filterwarnings("ignore", message=".*encountered in matmul", category=RuntimeWarning)
@@ -42,32 +46,45 @@ assert (c0 == original).all() and not (painel_copy_move(cinza, par, 1.0, 1.0) ==
 assert (painel_copy_move(cinza, [], 1.0, 1.0) == original).all()  # sem pares: imagem intacta
 assert recortar(original, 0.25, 0.5, 0.5, 0.25).shape == (15, 40, 3)
 
-# Os números fixos da interface conferem com as saídas gravadas do notebook 04.
-nb = json.loads((ROOT / "notebooks/04_classificador.ipynb").read_text(encoding="utf-8"))
-saida = "".join("".join(o.get("text", "")) for c in nb["cells"] if c["cell_type"] == "code"
-                for o in c["outputs"] if o.get("output_type") == "stream")
-for trecho in ("precisão: 20.0%", "sensibilidade: 45.7%", "especificidade: 65.0%", "AUC: 0.626",
-               "(IC 95%: 30.5% a 61.8%)", "(IC 95%: 12.7% a 30.0%)", "acurácia = 83.9%"):
-    assert trecho in saida, trecho
-m = METRICAS_TEST
-assert (m["marcadas_adulteradas"], m["marcadas_autenticas"]) == (16, 64)
-assert round(16 / 35, 3) == m["sensibilidade"] and round(16 / 80, 3) == m["precisao"]
-assert round(119 / 183, 3) == m["especificidade"] and round(183 / 218, 3) == m["acuracia_tudo_autentico"]
+# O hash do modelo é conferido antes do uso: hash errado para a execução; o certo passa.
+try:
+    verificar_hash(b"conteudo qualquer", "0" * 64, "modelo de teste")
+    raise AssertionError("esperava RuntimeError")
+except RuntimeError:
+    pass
+verificar_hash(b"abc", "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad", "abc")
+modelo, config = carregar_candidato()
+assert len(config["features"]) == 13 and config["features"][-1] == "copy_move_par"
+assert config["limiar"]["valor"] == 0.38857134275922206
+m = metricas_candidato()
+assert (m["sensibilidade"], m["especificidade"]) == (config["limiar"]["sensibilidade"], config["limiar"]["especificidade"])
 
-# Consistência com o lote: a análise avulsa dá a probabilidade gravada para 5 imagens do val.
-csv = ROOT / "results/probabilidades_val_v2.csv"
+# A referência do percentil: 2307 previsões fora da amostra, com o hash conferido na carga.
+referencia = pontuacoes_referencia()
+assert len(referencia) == 2307 and 0 <= referencia.min() and referencia.max() <= 1
+assert faixa_e_posicao(config["limiar"]["valor"], config["limiar"]["valor"], referencia)[0] == "Revisar"
+
+# Consistência com o lote: a análise avulsa dá a mesma pontuação e a mesma feature de copy-move que o lote
+# (CSVs de features de train e val + `copy_move_par`), para 5 imagens do val.
 val_dir = ROOT / "data/findit2/val"
-if not (csv.exists() and val_dir.exists()):
-    print("ok (parcial: dataset ou probabilidades do val ausentes, consistência com o lote não testada)")
+caches = [ROOT / "data/features_val.csv", ROOT / "data/features_v2_val.csv", ROOT / "data/features_copy_move_cv.csv"]
+if not (val_dir.exists() and all(c.exists() for c in caches)):
+    print("ok (parcial: dataset ou features do lote ausentes, consistência com o lote não testada)")
     sys.exit(0)
-ref = pd.read_csv(csv).set_index("image")["prob_v2"]
-for nome in random.Random(42).sample(sorted(ref.index), 5):
+lote = (pd.read_csv(caches[0]).merge(pd.read_csv(caches[1]), on="image")
+        .merge(pd.read_csv(caches[2])[["image", "copy_move_par"]], on="image").set_index("image"))
+for nome in random.Random(42).sample(sorted(lote.index.intersection([p.name for p in val_dir.glob("*.png")])), 5):
     r = analisar_imagem(val_dir / nome)
-    diff = abs(r["pontuacao"] - ref[nome])
-    print(f"{nome}: diferença = {diff:.3e} | faixa = {r['faixa']}")
+    esperado = modelo.predict_proba(lote.loc[[nome], config["features"]].to_numpy())[0, 1]
+    diff = abs(r["pontuacao"] - esperado)
+    print(f"{nome}: diferença = {diff:.3e} | faixa = {r['faixa']} | copy_move_par = {r['features']['copy_move_par']}")
     assert diff < 1e-9, (nome, diff)
+    assert r["features"]["copy_move_par"] == lote.loc[nome, "copy_move_par"] == int(len(r["copy_move_pares"]) > 0)
+    assert r["features"]["copy_move_par"] == feature_copy_move(load_gray(val_dir / nome), **{
+        k: config["configuracao_tecnica_1"][c] for k, c in (("piso", "piso_intensidade"), ("k", "k"), ("limiar", "limiar_residuo"))})
+    assert r["limiar"] == config["limiar"]["valor"] and r["posicao"] is not None
     assert isinstance(r["regioes"], list) and len(r["regioes"]) <= 2 and isinstance(r["explicacao"], str)
     assert not any(p in r["explicacao"].lower() for p in ("fraude", "adulterad", "falsific")), r["explicacao"]
-    assert list(r["features"]) == json.loads((ROOT / "results/configuracao_congelada.json").read_text(encoding="utf-8"))["features"]
+    assert list(r["features"]) == config["features"]
 
 print("ok")
