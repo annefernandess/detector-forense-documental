@@ -1,0 +1,41 @@
+{
+  "congelado_em": "2026-11-06T17:04:46",
+  "codigo": {
+    "src/ruido_local.py": "e71c1822d0f5d974095a928b826676bf76e6ae9f638bcc6600ec52efe9cc5751"
+  },
+  "teste": {
+    "tests/test_ruido_local.py": "71e1e3405a8be35786eb173577af93dac78127fa688e097b6217c7c785837d39"
+  },
+  "reutiliza_sem_alterar": {
+    "src/ruido_fundo.py": "80656386a68026b2753273bd2db51ffab893f7ed257ee70891de8849431aca40",
+    "funcoes": "auc_regioes, hit_rate_evaluation, score_regiao, _blocos, constantes LIMIAR_FUNDO e LIMIAR_Z",
+    "src/comparacao_cv.py": "95c5a0ced530e50c3bc6a3b399b61637187cf512b26eac0eb6e10a7c7243692c"
+  },
+  "tecnica": {
+    "residuo": "imagem - mediana 3x3 (copy_move_residuo.residuo), tons de cinza, resolução original",
+    "fundo": "fora da máscara de Otsu do texto dilatada de 3 px (interpretação: elemento 7x7, raio 3 px; a rodada anterior usou 5x5)",
+    "blocos": "lado B em {32, 64}, só blocos inteiros; ignora bloco com menos de 50% de fundo",
+    "sigma": "desvio-padrão (ddof = 0) do resíduo nos pixels de fundo do bloco",
+    "valor": "log(sigma + 0,1)",
+    "calibracao": "média e desvio do valor nos blocos válidos (agrupados) das imagens autênticas do train, separados por B",
+    "mapa": "z = (valor - média) / desvio, por bloco válido",
+    "feature_de_imagem": "fração de blocos válidos com |z| > 3 (uma por B); sem bloco válido: indefinida, imputada pela mediana e contada",
+    "paralelismo": "nenhum (sequencial); sem fork"
+  },
+  "etapa_1_regiao": {
+    "conjunto": "train do Find it again!, imagens adulteradas com regiões anotadas",
+    "criterio": "AUC no nível de região (ruido_fundo.auc_regioes: região real = maior |z| nos blocos que a tocam; pseudo-regiões de generate_pseudo_region, 20 sorteios, seed 42) com IC bootstrap de 2000 reamostragens sobre as imagens, seed 42; complemento por evaluate_region_technique",
+    "passa_se": "limite inferior do IC > 0,5 para algum B",
+    "B_vencedor": "maior AUC entre os que passam (empate: menor B)"
+  },
+  "etapa_2_classificador": {
+    "dados": "train + val do Find it again!; test não aberto",
+    "candidato": "12 features do v2 + a feature desta técnica no B vencedor",
+    "protocolo": "o do v2 (comparacao_cv.auc_por_particao, 5 x 3, seed 42, StandardScaler + LogisticRegression balanced); a média do v2 deve reproduzir 0,665416",
+    "criterio": "AUC externa média >= 0,70 E limite inferior do IC95 corrigido (Nadeau e Bengio) da diferença pareada contra o v2 > 0",
+    "ressalva_conhecida": "a calibração usa as autênticas do train; na validação cruzada elas aparecem também nos folds de validação (estatística de 2 números por B, mas dependente do rótulo)"
+  },
+  "regra_de_parada": "se nenhum B passar na etapa 1, registrar em results/diagnostico_ruido_local_train.json e parar",
+  "seed": 42,
+  "proibido": "abrir o test do Find it again!; alterar src/ruido_fundo.py, o classificador ou arquivos congelados de results/"
+}

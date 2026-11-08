@@ -1,0 +1,52 @@
+{
+  "escopo": "só train do Find it again!",
+  "calibracao": {
+    "32": {
+      "media": -1.9144269227981567,
+      "desvio": 0.9606921076774597
+    },
+    "64": {
+      "media": -1.7595150470733643,
+      "desvio": 1.0863680839538574
+    }
+  },
+  "regiao": [
+    {
+      "tecnica": "local",
+      "B": 32,
+      "n_imagens": 82,
+      "auc": 0.6473072551656521,
+      "ic_min": 0.5812174170855763,
+      "ic_max": 0.7106853577706221,
+      "exclusoes": {
+        "mapa_indefinido": 0,
+        "regiao_real_sem_bloco": 7,
+        "poucas_pseudo_validas": 4
+      },
+      "acerto_real": 0.6666666666666666,
+      "acerto_acaso": 0.4735839892057642,
+      "n_evaluate": 72
+    },
+    {
+      "tecnica": "local",
+      "B": 64,
+      "n_imagens": 83,
+      "auc": 0.6405309696354682,
+      "ic_min": 0.5793569298296956,
+      "ic_max": 0.7007738098770377,
+      "exclusoes": {
+        "mapa_indefinido": 0,
+        "regiao_real_sem_bloco": 7,
+        "poucas_pseudo_validas": 3
+      },
+      "acerto_real": 0.6056338028169014,
+      "acerto_acaso": 0.49075373473893075,
+      "n_evaluate": 71
+    }
+  ],
+  "B_vencedor": 32,
+  "parar": false,
+  "codigo_sha256": {
+    "src/ruido_local.py": "e71c1822d0f5d974095a928b826676bf76e6ae9f638bcc6600ec52efe9cc5751"
+  }
+}
