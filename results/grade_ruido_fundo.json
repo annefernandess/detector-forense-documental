@@ -1,0 +1,54 @@
+{
+  "congelado_em": "2026-11-06T11:30:23",
+  "codigo": {
+    "src/ruido_fundo.py": "80656386a68026b2753273bd2db51ffab893f7ed257ee70891de8849431aca40",
+    "src/comparacao_cv.py": "95c5a0ced530e50c3bc6a3b399b61637187cf512b26eac0eb6e10a7c7243692c"
+  },
+  "teste": {
+    "tests/test_ruido_fundo.py": "1df87c889fc01e893ee58f4125b0fb5c2561bddb7471d0b49ea3559228348ce7"
+  },
+  "tecnica_A_ruido_local": {
+    "residuo": "imagem - mediana 3x3 (copy_move_residuo.residuo), tons de cinza, resolução original",
+    "fundo": "fora da máscara de Otsu do texto dilatada (kernel 5x5, 1 iteração)",
+    "blocos": "lado B em {32, 64}, só blocos inteiros",
+    "bloco_ignorado_se": "menos de 50% de fundo, ou sigma = 0 (sem log)",
+    "sigma": "MAD x 1,4826 do resíduo nos pixels de fundo do bloco",
+    "mapa": "z robusto de log(sigma): (v - mediana)/(1,4826 x MAD) sobre os blocos válidos da imagem"
+  },
+  "tecnica_B_fundo_do_papel": {
+    "superficie": "polinômio de grau 2 em x e y (coordenadas em [-1,1]) por mínimos quadrados em pixels de fundo (até 200000, sorteados com seed 42)",
+    "residuo": "imagem - superfície",
+    "blocos": "mesmos B e regras",
+    "mapa": "z robusto da média do |resíduo| por bloco (pixels de fundo)"
+  },
+  "mapa_indefinido_se": "menos de 10 blocos válidos ou MAD = 0",
+  "features_de_imagem": {
+    "por": "técnica e B",
+    "1": "percentil 99 de |z| nos blocos válidos",
+    "2": "fração de blocos com |z| > 3",
+    "limiar_z": 3,
+    "n_colunas": 8,
+    "mapa_indefinido": "feature ausente; no classificador, imputada pela mediana das imagens definidas (train+val), com a contagem reportada"
+  },
+  "etapa_1_regiao": {
+    "conjunto": "train do Find it again!, imagens adulteradas com regiões anotadas",
+    "regiao_real": "maior |z| entre os blocos válidos que tocam as regiões modificadas (is_original_area is not True)",
+    "acaso": "generate_pseudo_region (mesmo tamanho da maior região modificada, com texto, sem sobreposição com as anotadas), 20 sorteios por imagem, seed 42, mínimo de 10 válidos, como evaluate_region_technique",
+    "auc": "por imagem, fração de pseudo-regiões com score menor que o da região real (empate = 1/2); AUC final = média entre imagens",
+    "ic": "bootstrap sobre as imagens, 2000 reamostragens, seed 42, percentis 2,5 e 97,5",
+    "tecnica_passa_se": "limite inferior do IC > 0,5 para algum B",
+    "B_vencedor": "o B de maior AUC entre os que passam (empate: menor B)",
+    "complemento": "acerto contra o acaso por evaluate_region_technique, reportado, fora do critério"
+  },
+  "regra_de_parada": "se nenhuma técnica passar, registrar como negativo em results/diagnostico_ruido_fundo_train.json e parar; se só uma passar, seguir só com ela",
+  "etapa_2_classificador": {
+    "dados": "train + val do Find it again! (mesmos 769 do v2); test não aberto",
+    "candidato": "12 features do v2 + as 2 features de cada técnica aprovada, no B vencedor",
+    "protocolo": "o do v2 (notebook 04, classification.cv_evaluate): StandardScaler + LogisticRegression(class_weight='balanced', max_iter=1000, random_state=42), RepeatedStratifiedKFold 5 x 3, seed 42; AUC por partição calculada com o mesmo divisor (comparacao_cv.auc_por_particao); a média do v2 deve reproduzir 0,665416 +- 0,046784 de results/configuracao_congelada.json",
+    "diferenca_pareada": "AUC(candidato) - AUC(v2) por partição; IC 95% pela correção de Nadeau e Bengio (variância x (1/15 + 1/4)), t de Student com 14 graus; IC ingênuo reportado junto",
+    "criterio": "AUC externa média do candidato >= 0,70 E limite inferior do IC95 corrigido da diferença > 0",
+    "auc_isolada": "AUC de cada feature nova, tampered contra autêntica, nas 769 imagens"
+  },
+  "proibido": "abrir o test do Find it again!; alterar results/modelo_v2.joblib, results/configuracao_congelada.json, src/copy_move_residuo.py ou outros arquivos congelados",
+  "seed": 42
+}

@@ -1,0 +1,84 @@
+{
+  "escopo": "só train do Find it again!",
+  "mapas_indefinidos": {
+    "local_32": 577,
+    "fundo_32": 0,
+    "local_64": 577,
+    "fundo_64": 0
+  },
+  "regiao": [
+    {
+      "tecnica": "local",
+      "B": 32,
+      "n_imagens": 0,
+      "auc": NaN,
+      "ic_min": NaN,
+      "ic_max": NaN,
+      "exclusoes": {
+        "mapa_indefinido": 93,
+        "regiao_real_sem_bloco": 0,
+        "poucas_pseudo_validas": 0
+      },
+      "acerto_real": 0.0,
+      "acerto_acaso": 0.0,
+      "n_evaluate": 0
+    },
+    {
+      "tecnica": "local",
+      "B": 64,
+      "n_imagens": 0,
+      "auc": NaN,
+      "ic_min": NaN,
+      "ic_max": NaN,
+      "exclusoes": {
+        "mapa_indefinido": 93,
+        "regiao_real_sem_bloco": 0,
+        "poucas_pseudo_validas": 0
+      },
+      "acerto_real": 0.0,
+      "acerto_acaso": 0.0,
+      "n_evaluate": 0
+    },
+    {
+      "tecnica": "fundo",
+      "B": 32,
+      "n_imagens": 89,
+      "auc": 0.6162503989712046,
+      "ic_min": 0.548509169643701,
+      "ic_max": 0.6799915359447006,
+      "exclusoes": {
+        "mapa_indefinido": 0,
+        "regiao_real_sem_bloco": 2,
+        "poucas_pseudo_validas": 2
+      },
+      "acerto_real": 0.5443037974683544,
+      "acerto_acaso": 0.4885114405522369,
+      "n_evaluate": 79
+    },
+    {
+      "tecnica": "fundo",
+      "B": 64,
+      "n_imagens": 88,
+      "auc": 0.6320289778590862,
+      "ic_min": 0.5680165883388842,
+      "ic_max": 0.692372650166526,
+      "exclusoes": {
+        "mapa_indefinido": 0,
+        "regiao_real_sem_bloco": 2,
+        "poucas_pseudo_validas": 3
+      },
+      "acerto_real": 0.6235294117647059,
+      "acerto_acaso": 0.5059689733059793,
+      "n_evaluate": 85
+    }
+  ],
+  "aprovadas_B_vencedor": {
+    "local": null,
+    "fundo": 64
+  },
+  "parar": false,
+  "codigo_sha256": {
+    "src/ruido_fundo.py": "80656386a68026b2753273bd2db51ffab893f7ed257ee70891de8849431aca40",
+    "src/comparacao_cv.py": "95c5a0ced530e50c3bc6a3b399b61637187cf512b26eac0eb6e10a7c7243692c"
+  }
+}
