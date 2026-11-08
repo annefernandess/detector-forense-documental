@@ -1,0 +1,50 @@
+{
+  "congelado_em": "2026-11-06T10:50:57",
+  "arquivo": "src/copy_move_residuo.py",
+  "sha256": "4ccc00134fd815c13cb08763fcfbfd49d8e8ac4d9ec8365f8fd1be4c0fdc27c8",
+  "teste": "tests/test_copy_move_residuo.py",
+  "teste_sha256": "6ab3befa61f7f1cff400c4d6d5ba739da0dd6d31d0e3d1ff75ea2937577f453b",
+  "grade": {
+    "piso_intensidade": [
+      0.95,
+      0.97,
+      0.99
+    ],
+    "mediana_k": [
+      3,
+      5
+    ],
+    "limiar_residuo": [
+      0.3,
+      0.4,
+      0.5,
+      0.6,
+      0.7,
+      0.8,
+      0.9
+    ],
+    "min_side_fixo": 6,
+    "cobertura_minima_fixa": 0.5,
+    "deslocamento_px": 2,
+    "n_configuracoes": 42
+  },
+  "padrao_atual": {
+    "descricao": "busca cega só por intensidade: piso 0,99, MIN_SIDE 6, cobertura 0,5",
+    "J_val": 0.195,
+    "cobertura_val": 0.079
+  },
+  "criterio_escolha": {
+    "conjunto": "val do Find it again!",
+    "medida": "J = taxa de imagens com CPI com algum par - taxa de imagens autênticas com algum par",
+    "desempate": "maior cobertura de regiões CPI"
+  },
+  "criterio_sucesso": {
+    "J_val_min": 0.295,
+    "cobertura_val_min": 0.079,
+    "se_nao_atingir": "registrar como resultado negativo"
+  },
+  "diagnostico": "etapa 2 só no train: correlação do resíduo em (a) regiões CPI contra o pico e (b) pares da busca atual em autênticas; parar se as distribuições se sobrepuserem quase por completo",
+  "verificacao_externa": "data/cord_sintetico_dev/, só cobertura da caixa colada, com a configuração escolhida e a padrão (1,8%)",
+  "proibido": "abrir o test do Find it again! em qualquer etapa",
+  "seed": 42
+}
