@@ -1,0 +1,88 @@
+{
+  "versao": "candidato (v2 + copy_move_par)",
+  "congelado_em": "2026-11-07T12:08:17",
+  "modelo": {
+    "arquivo": "results/modelo_candidato.joblib",
+    "sha256": "0b85150bcb671d7f1d8c6e8df9b8295275e8375fd09263f3260b504c2f5edf9c",
+    "receita": "StandardScaler + LogisticRegression(class_weight='balanced', max_iter=1000, random_state=42), treinada nas 769 imagens de train + val",
+    "versoes": {
+      "scikit-learn": "1.6.1",
+      "numpy": "2.0.2"
+    }
+  },
+  "sha256_src_copy_move_residuo": "4ccc00134fd815c13cb08763fcfbfd49d8e8ac4d9ec8365f8fd1be4c0fdc27c8",
+  "sha256_src_copy_move_feature": "249c1d7be8d4480010b9f778813c2097488eae3a2819f83bacff55c3eb55eabb",
+  "sha256_script_da_receita": "7f2b3439db62d341fa22f64feb233129941c061b711782061332579c682e7e89",
+  "configuracao_tecnica_1": {
+    "piso_intensidade": 0.95,
+    "k": 3,
+    "limiar_residuo": 0.9,
+    "deslocamento_px": 2,
+    "min_side": 6,
+    "cobertura_minima": 0.5,
+    "observacao_cobertura": "a cobertura mede regiões anotadas e não entra na feature de imagem",
+    "origem": "results/copy_move_residuo_val.json (val.escolhida); sha256 do arquivo no campo abaixo"
+  },
+  "features": [
+    "ela_p95",
+    "copy_move_peak",
+    "ghost_q90_frac",
+    "has_jpeg_history",
+    "noise_std",
+    "noise_p95",
+    "edge_std",
+    "ela_comp_max_z",
+    "ela_comp_frac_out",
+    "noise_comp_max_z",
+    "edge_comp_max_z",
+    "intensity_comp_max_z",
+    "copy_move_par"
+  ],
+  "limiar": {
+    "valor": 0.38857134275922206,
+    "sensibilidade": 0.7532808398950132,
+    "especificidade": 0.6007268951194185,
+    "youden_J": 0.3540077350144316,
+    "n_previsoes": 2307,
+    "n_previsoes_adulteradas": 381,
+    "auc_externa_media_das_particoes": 0.7275535865136156,
+    "origem": "previsões fora da amostra da validação cruzada 5 x 3 (seed 42) nas 769 imagens de train + val, 3 por imagem, agrupadas; maior índice de Youden (decide positivo se prob >= limiar); sem test e sem o v2"
+  },
+  "determinismo": {
+    "execucoes": 2,
+    "processos_separados": true,
+    "max_diff_train": 0.0,
+    "max_diff_train_val": 0.0,
+    "n_imagens_train": 577,
+    "max_diff_modelo_salvo_contra_sonda": 0.0
+  },
+  "teste": {
+    "auc_v2": 0.6260733801717409,
+    "auc_v2_ic_bootstrap": [
+      0.5185311938121175,
+      0.7304576615626873
+    ],
+    "auc_candidato": 0.7213114754098361,
+    "auc_candidato_ic_bootstrap": [
+      0.6265292680989468,
+      0.8101074196408146
+    ],
+    "diferenca_auc": 0.09523809523809523,
+    "diferenca_ic_bootstrap_2000_seed42": [
+      0.004513044743307899,
+      0.18489109939386159
+    ],
+    "n_avaliacao": 218,
+    "n_adulteradas": 35,
+    "feature": {
+      "adulteradas_com_par": 18,
+      "autenticas_com_par": 41,
+      "fracao_adulteradas": 0.5142857142857142,
+      "fracao_autenticas": 0.22404371584699453,
+      "auc_isolada": 0.6451209992193598
+    },
+    "fonte": "results/teste_final_candidato.json (executado em 2026-11-06T18:06:29)"
+  },
+  "nota_sobre_o_teste": "O AUC do test foi calculado com um modelo treinado na rodada de 6/11 e não salvo. O modelo salvo nesta configuração é a reprodução da receita, com equivalência verificada por determinismo no train, e não o objeto avaliado no test.",
+  "v2_de_referencia": "results/modelo_v2.joblib e results/configuracao_congelada.json (não alterados)"
+}

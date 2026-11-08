@@ -1,0 +1,12 @@
+{
+  "congelado_em": "2026-11-07T12:16:03",
+  "script": "notebooks/calibracao_candidato.py",
+  "script_sha256": "5ccd0dfce37294fcdc5612c4653ef456686f2e47a16f1cf7d815087a3ef91088",
+  "metodo": "faixas por quantis da pontuação fora da amostra: 5 faixas, limites nos quantis 0,2; 0,4; 0,6 e 0,8 (np.quantile, interpolação linear); faixa com limite inferior inclusivo e superior exclusivo",
+  "previsoes": "fora da amostra da validação cruzada 5 x 3 (seed 42) nas 769 imagens de train + val, 2307 previsões (3 por imagem, agrupadas), regeneradas com a receita de notebooks/congelar_candidato.py e conferidas contra o limiar congelado (0,38857134275922206)",
+  "probabilidade_da_faixa": "fração de adulterados entre as previsões da faixa, com IC de Wilson 95%",
+  "probabilidade_no_limiar": "a da faixa que contém o limiar 0,38857; reportadas também as frações de adulterados entre as previsões acima e abaixo do limiar",
+  "proibido": "curva suave, Platt, isotônica; abrir o test; alterar results/modelo_candidato.joblib, o limiar, a configuração ou os arquivos do v2",
+  "conferencia_de_monotonicidade": "a probabilidade deve crescer estritamente com a faixa; se não, parar sem gravar results/calibracao_candidato.json",
+  "nota_a_gravar": "tabela estimada sobre previsões fora da amostra de train + val (769 imagens); não é validada no test; a base real de adulterados no conjunto é de cerca de 16%"
+}
