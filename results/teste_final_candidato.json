@@ -1,0 +1,53 @@
+{
+  "rodada": "única no test do Find it again!",
+  "executado_em": "2026-11-06T18:06:29",
+  "hashes_conferidos": {
+    "src/copy_move_feature.py": "249c1d7be8d4480010b9f778813c2097488eae3a2819f83bacff55c3eb55eabb",
+    "tests/test_copy_move_feature.py": "1ad5c60408cd6dd7b16e486b22874dc746083b3089f033118f1b76afec27b972",
+    "src/copy_move_residuo.py": "4ccc00134fd815c13cb08763fcfbfd49d8e8ac4d9ec8365f8fd1be4c0fdc27c8",
+    "src/copy_move.py": "283fff5895f04f0be4698e816626899d57292d39122b665d188538d340ac4f07",
+    "src/comparacao_cv.py": "95c5a0ced530e50c3bc6a3b399b61637187cf512b26eac0eb6e10a7c7243692c",
+    "results/copy_move_residuo_val.json": "b5fc76549927f188da305630d8b812941c5026089818d0bda741a5777bde7c99"
+  },
+  "modelo_v2": "results/modelo_v2.joblib (congelado)",
+  "modelo_v2_sha256": "dd0a0303e9de30edec802483185cdccbea91c3ed25877bedc8525ec201ccecfb",
+  "configuracao_copy_move": {
+    "piso_intensidade": 0.95,
+    "k": 3,
+    "limiar_residuo": 0.9,
+    "deslocamento_px": 2,
+    "min_side": 6,
+    "cobertura_minima": 0.5,
+    "observacao_cobertura": "a cobertura mede regiões anotadas e não entra na feature de imagem",
+    "origem": "results/copy_move_residuo_val.json (val.escolhida); sha256 do arquivo no campo abaixo"
+  },
+  "n_treino": 769,
+  "n_avaliacao": 218,
+  "n_adulteradas": 35,
+  "feature": {
+    "adulteradas_com_par": 18,
+    "autenticas_com_par": 41,
+    "fracao_adulteradas": 0.5142857142857142,
+    "fracao_autenticas": 0.22404371584699453,
+    "auc_isolada": 0.6451209992193598
+  },
+  "auc_v2": 0.6260733801717409,
+  "auc_v2_ic_bootstrap": [
+    0.5185311938121175,
+    0.7304576615626873
+  ],
+  "auc_candidato": 0.7213114754098361,
+  "auc_candidato_ic_bootstrap": [
+    0.6265292680989468,
+    0.8101074196408146
+  ],
+  "diferenca_auc": 0.09523809523809523,
+  "diferenca_ic_bootstrap_2000_seed42": [
+    0.004513044743307899,
+    0.18489109939386159
+  ],
+  "reamostras_validas": 2000,
+  "criterio": "AUC do candidato > AUC do v2 no test E limite inferior do IC pareado > 0",
+  "criterio_atingido": true,
+  "decisao": "candidato vira o classificador final"
+}
