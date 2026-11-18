@@ -1,9 +1,9 @@
-numpy
+numpy==2.0.2
 opencv-python
 pillow
 matplotlib
 scikit-image
-scikit-learn
+scikit-learn==1.6.1
 pandas
 jupyter
 streamlit
