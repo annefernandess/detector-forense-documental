@@ -2,7 +2,7 @@
 
 Projeto final de Processamento Digital de Imagens (PDI), UFPB, prof. Leonardo Vidal Batista.
 
-Este repositório avalia técnicas clássicas de PDI para localizar e sinalizar adulterações em recibos digitalizados: Error Level Analysis (ELA), JPEG Ghost e detecção de cópia e colagem (copy-move) por correlação normalizada. As técnicas são medidas contra um acaso explícito (pseudo-regiões sorteadas com texto), e um classificador de regressão logística resume a imagem inteira. O classificador final é o candidato de 13 features (as 12 do v2 mais uma feature binária de copy-move com verificação do resíduo de ruído); o v2 fica como referência. Há também uma interface Streamlit de triagem, que ainda usa o v2. Os resultados são honestos e, em boa parte, modestos: a localização funciona quando a caixa adulterada é conhecida, a busca cega de copy-move sozinha não ajuda, e o ganho do classificador final sobre o v2 é pequeno e incerto. A seção [Limitações](#limitações) detalha o que cada número mede e o que não mede.
+Este repositório avalia técnicas clássicas de PDI para localizar e sinalizar adulterações em recibos digitalizados: Error Level Analysis (ELA), JPEG Ghost e detecção de cópia e colagem (copy-move) por correlação normalizada. As técnicas são medidas contra um acaso explícito (pseudo-regiões sorteadas com texto), e um classificador de regressão logística resume a imagem inteira. O classificador final é o candidato de 13 features (as 12 do v2 mais uma feature binária de copy-move com verificação do resíduo de ruído); o v2 fica como referência. Há também uma interface Streamlit de triagem, que usa o classificador final. Os resultados são honestos e, em boa parte, modestos: a localização funciona quando a caixa adulterada é conhecida, a busca cega de copy-move sozinha não ajuda, e o ganho do classificador final sobre o v2 é pequeno e incerto. A seção [Limitações](#limitações) detalha o que cada número mede e o que não mede.
 
 ## Resultados principais
 
@@ -59,7 +59,16 @@ Notebooks:
 | `09_ruido_local` | ruído local revisado (desvio-padrão, calibração) como mapa e como feature (resultado negativo como feature) |
 | `10_copy_move_como_feature` | a técnica 1 como feature binária do classificador, na validação cruzada |
 
-Os scripts `notebooks/diagnostico_*.py`, `notebooks/teste_final_candidato.py` e `notebooks/congelar_candidato.py` são diagnósticos temporários, a rodada única no test e o congelamento do candidato; cada um grava o hash do código usado.
+Os scripts em `notebooks/` registram etapas de execução única; cada um grava o hash do código usado:
+
+| Script | Conteúdo |
+|---|---|
+| `diagnostico_desalinhamento_train.py`, `diagnostico_escala_cord_dev.py` | diagnósticos da técnica 1 (hipóteses de desalinhamento e de escala, refutadas) |
+| `diagnostico_grade_train.py` | grade de blocos do JPEG no train (resultado negativo) |
+| `teste_final_candidato.py` | rodada única do candidato no test |
+| `congelar_candidato.py` | congelamento do modelo, do limiar e da configuração |
+| `calibracao_candidato.py` | tentativa de calibração por faixas (interrompida pela regra de monotonicidade) |
+| `referencia_percentil_candidato.py` | previsões de referência da posição mostrada na interface |
 
 Os JSON em `results/` que citam "notebook 07" e "notebook 08" se referem aos notebooks 05 e 06, renomeados depois de gerados.
 
@@ -118,7 +127,9 @@ python tests/test_regioes.py
 - **Configuração da técnica 1 escolhida no val.** O piso 0,95, a mediana 3 x 3 e o limiar 0,9 foram escolhidos no val do *Find it again!*, que faz parte dos dados de treino do classificador final; a validação cruzada do candidato não é independente dessa escolha (no train, que não participou dela, a AUC isolada da feature é a mesma: 0,673 contra 0,663 no val).
 - **Modelo do test não salvo.** O AUC do test foi calculado com um modelo treinado na rodada de 6/11 e não salvo. O modelo salvo nesta configuração é a reprodução da receita, com equivalência verificada por determinismo no train, e não o objeto avaliado no test.
 - **No conjunto sintético, o v2 fica perto do acaso.** AUC 0,487 (intervalo [0,404; 0,570], que inclui 0,5); o candidato não foi avaliado nesse conjunto.
-- **Interface.** A interface Streamlit ainda usa o v2 (`results/modelo_v2.joblib`); o candidato ainda não foi integrado.
+- **Interface.** A interface Streamlit usa o classificador final (`results/modelo_candidato.joblib`, com o hash conferido na carga) e mostra uma faixa e uma posição relativa, nunca uma probabilidade: a calibração por faixas da pontuação não foi monótona e não foi adotada (`results/calibracao_candidato_fixada.json`). Ver `app/README.md`.
+- **Generalização do classificador final não medida.** Não havia conjunto de outra origem com adulterações ainda não usado em nenhuma etapa. A interface declara que só foi validada para recibos semelhantes aos do *Find it again!*.
+- **Técnicas testadas e não incorporadas.** A grade de blocos do JPEG parou no diagnóstico (grade detectável em 28,0% das autênticas do train, abaixo dos 50% exigidos; `results/diagnostico_grade_train.json`). O fundo do papel e o ruído local se destacam na região anotada, mas não melhoraram o classificador na validação cruzada (diferença de AUC contra o v2 de -0,008 [-0,021; +0,005] e +0,004 [-0,013; +0,021]; `results/classificador_ruido_fundo_cv.json`, `results/classificador_ruido_local_cv.json`).
 - **Busca cega sem ganho.** Com a configuração padrão, a busca cega marca 17,5% das autênticas do *Find it again!* e cobre só 10,5% das regiões CPI. No conjunto sintético, acerta 1 de 95.
 - **Conjunto sintético de copy-move.** As adulterações do CORD são colagens exatas de uma caixa de texto, geradas por programa (`src/gerar_copy_move_sintetico.py`, congelado em `results/gerador_congelado.json`). São o caso mais fácil para um método de correlação e não representam edições feitas por pessoas. Dez das 200 notas (fotos de fundo escuro) saíram das duas classes porque o gerador não achou caixa.
 - **Uso duplo dos dados de avaliação.** O conjunto `data/cord_sintetico/` foi usado duas vezes: no notebook 05 e na avaliação final do notebook 06.
